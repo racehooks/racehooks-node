@@ -24,7 +24,7 @@ export class HttpClient {
       res = await fetch(`${this.baseUrl}/v1${path}`, {
         method,
         headers: {
-          "Content-Type": "application/json",
+          ...(body !== undefined && { "Content-Type": "application/json" }),
           "Authorization": `Bearer ${token}`,
         },
         ...(body !== undefined && { body: JSON.stringify(body) }),

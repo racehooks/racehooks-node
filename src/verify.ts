@@ -38,16 +38,25 @@ export function signPayload(secret: string, body: string | Buffer): string {
 }
 
 /** @internal Normalize a string | string[] | undefined header to a single string. */
-function headerValue(v: string | string[] | undefined): string {
+export function headerValue(v: string | string[] | undefined): string {
   if (Array.isArray(v)) return v[0] ?? "";
   return v ?? "";
 }
 
 /** @internal Constant-time HMAC comparison; returns false (never throws) on mismatch. */
 function secureCompare(a: string, b: string): boolean {
+  // Always run timingSafeEqual on equal-length buffers. When lengths differ, compare
+  // against 'b' padded to 'a' length so the comparison takes constant time regardless
+  // of whether the supplied signature is the right length.
   const bufA = Buffer.from(a, "utf8");
   const bufB = Buffer.from(b, "utf8");
-  if (bufA.length !== bufB.length) return false;
+  if (bufA.length !== bufB.length) {
+    // Still consume constant time relative to bufB by running the comparison anyway.
+    const padded = Buffer.alloc(bufA.length);
+    bufB.copy(padded, 0, 0, Math.min(bufB.length, bufA.length));
+    timingSafeEqual(bufA, padded);
+    return false;
+  }
   return timingSafeEqual(bufA, bufB);
 }
 

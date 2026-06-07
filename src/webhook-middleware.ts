@@ -7,6 +7,7 @@
 
 import {
   verifySignature,
+  headerValue,
   SIGNATURE_HEADER,
   TIMESTAMP_HEADER,
   WebhookSignatureError,
@@ -174,13 +175,10 @@ export function webhookHandler(
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
-function headerValue(v: string | string[] | undefined): string {
-  if (Array.isArray(v)) return v[0] ?? "";
-  return v ?? "";
-}
-
 async function resolveRawBody(req: NodeLikeRequest): Promise<string | Buffer> {
-  if (Buffer.isBuffer(req.rawBody) || typeof req.rawBody === "string") return req.rawBody;
+  // Accept rawBody only when it contains actual bytes (non-empty string or non-empty Buffer).
+  if (Buffer.isBuffer(req.rawBody) && req.rawBody.length > 0) return req.rawBody;
+  if (typeof req.rawBody === "string" && req.rawBody.length > 0) return req.rawBody;
   if (Buffer.isBuffer(req.body)) return req.body;
   if (req.body !== undefined && req.body !== null && typeof req.body === "object") {
     throw new Error(
