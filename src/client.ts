@@ -55,7 +55,7 @@ const DEFAULT_TIMEOUT_MS = 15_000;
  * // In your webhook endpoint:
  * app.post("/hook", express.raw({ type: "application/json" }), (req, res) => {
  *   const event = rh.constructEvent(req.body, req.headers["x-racehooks-signature"]);
- *   if (event.type === "raceevent") { ... }
+ *   if (event.feed === "raceevent") { ... }
  *   res.json({ received: true });
  * });
  * ```
@@ -143,7 +143,7 @@ export class RaceHooks {
    *   "/webhook",
    *   express.raw({ type: "application/json" }),
    *   rh.webhookHandler(async (event) => {
-   *     if (event.type === "raceevent") { ... }
+   *     if (event.feed === "raceevent") { ... }
    *   }),
    * );
    * ```

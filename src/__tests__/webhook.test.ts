@@ -25,13 +25,13 @@ import type { NodeLikeRequest, NodeLikeResponse } from "../webhook-middleware.js
 const SECRET = "whsec_test_0123456789abcdef0123456789abcdef";
 
 const WEATHER_BODY = JSON.stringify({
-  type: "weatherdata",
+  feed: "weatherdata",
   sessionId: "2026-bahrain-r1",
   data: { AirTemp: "24.1", TrackTemp: "31.0", Rainfall: "0" },
 });
 
 const RACE_EVENT_BODY = JSON.stringify({
-  type: "raceevent",
+  feed: "raceevent",
   sessionId: "2026-bahrain-r1",
   event: "safety.car.deployed",
   lap: 12,
@@ -224,20 +224,20 @@ describe("constructEvent", () => {
   it("returns parsed event for valid signature", () => {
     const sig = serverSign(SECRET, WEATHER_BODY);
     const event = constructEvent(WEATHER_BODY, sig, SECRET);
-    expect(event.type).toBe("weatherdata");
+    expect(event.feed).toBe("weatherdata");
     expect((event as { sessionId: string }).sessionId).toBe("2026-bahrain-r1");
   });
 
   it("works with Buffer payload", () => {
     const sig = serverSign(SECRET, WEATHER_BODY);
     const event = constructEvent(Buffer.from(WEATHER_BODY), sig, SECRET);
-    expect(event.type).toBe("weatherdata");
+    expect(event.feed).toBe("weatherdata");
   });
 
   it("parses raceevent correctly", () => {
     const sig = serverSign(SECRET, RACE_EVENT_BODY);
     const event = constructEvent(RACE_EVENT_BODY, sig, SECRET) as unknown as Record<string, unknown>;
-    expect(event["type"]).toBe("raceevent");
+    expect(event["feed"]).toBe("raceevent");
     expect(event["event"]).toBe("safety.car.deployed");
     expect(event["lap"]).toBe(12);
   });
@@ -263,7 +263,7 @@ describe("safeConstructEvent", () => {
     const result = safeConstructEvent(WEATHER_BODY, sig, SECRET);
     expect(result.valid).toBe(true);
     if (result.valid) {
-      expect(result.event.type).toBe("weatherdata");
+      expect(result.event.feed).toBe("weatherdata");
     }
   });
 
@@ -325,13 +325,13 @@ describe("webhookHandler", () => {
       [SIGNATURE_HEADER]: sig,
     });
 
-    let receivedType = "";
+    let receivedFeed = "";
     const mw = webhookHandler(SECRET, (event) => {
-      receivedType = event.type;
+      receivedFeed = event.feed;
     });
 
     await mw(req, res);
-    expect(receivedType).toBe("weatherdata");
+    expect(receivedFeed).toBe("weatherdata");
     expect(res._code).toBe(200);
   });
 
@@ -426,7 +426,7 @@ describe("RaceHooks class — webhook helpers", () => {
   it("constructEvent returns parsed event", () => {
     const sig = serverSign(SECRET, WEATHER_BODY);
     const event = rh.constructEvent(WEATHER_BODY, sig);
-    expect(event.type).toBe("weatherdata");
+    expect(event.feed).toBe("weatherdata");
   });
 
   it("safeConstructEvent returns { valid: true } on success", () => {

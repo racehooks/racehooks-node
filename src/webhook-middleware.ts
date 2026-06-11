@@ -61,7 +61,7 @@ export interface NodeLikeResponse {
  * // Express (using express.raw({ type: "application/json" })):
  * app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
  *   const event = constructEvent(req.body, req.headers["x-racehooks-signature"], secret);
- *   if (event.type === "raceevent") { ... }
+ *   if (event.feed === "raceevent") { ... }
  *   res.json({ received: true });
  * });
  * ```
@@ -89,7 +89,7 @@ export function constructEvent(
  *   console.warn("Bad delivery:", result.error.message);
  *   return res.status(400).json({ error: result.error.message });
  * }
- * console.log("Received:", result.event.type);
+ * console.log("Received:", result.event.feed);
  * ```
  */
 export function safeConstructEvent(
@@ -126,7 +126,7 @@ export function safeConstructEvent(
  *   "/webhook",
  *   express.raw({ type: "application/json" }),
  *   webhookHandler(process.env.WEBHOOK_SECRET!, async (event) => {
- *     if (event.type === "raceevent") { ... }
+ *     if (event.feed === "raceevent") { ... }
  *   }),
  * );
  *

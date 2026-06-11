@@ -2,11 +2,12 @@
 // Shared types mirroring the RaceHooks API response shapes
 // ---------------------------------------------------------------------------
 
-export type SubscriptionTier = "free" | "starter" | "pro" | "analytics";
+export type SubscriptionTier = "free" | "live" | "analytics";
 
 export interface WebhookFilters {
   drivers?: string[];
   driverNumbers?: string[];
+  driverIds?: string[];
   constructors?: string[];
   positions?: { min?: number; max?: number };
 }
@@ -137,27 +138,44 @@ export interface LiveContext {
   updatedAt: number;
 }
 
-// Webhook payload envelope delivered to your endpoint
+/** Stable driver identity block included in every normalized payload driver entry. */
+export interface DriverRef {
+  driverId: string;
+  constructorId: string;
+  number: string;
+  tla: string;
+  name: string;
+  team: string;
+  [key: string]: unknown;
+}
+
+/** Analytics block included inline per-driver in normalized feeds. */
+export interface DriverAnalytics {
+  tireHealth?: number;
+  degRateSecPerLap?: number;
+  cliffLapPredicted?: number;
+  cliffRisk?: "low" | "medium" | "high" | "critical";
+  pitStopProbability?: number;
+  pitRecommended?: boolean;
+  safetyCarProbability?: number;
+  fuelCorrectedTimeSec?: number;
+  regulationsEra?: string;
+}
+
+// Webhook payload envelope delivered to your endpoint.
+// Normalized per-driver feeds (timingdata, etc.) use `drivers` instead of `data`.
 export interface WebhookPayload<T = unknown> {
-  type: string;
+  feed: string;
   sessionId: string | null;
-  data: T;
-  analytics?: Record<string, {
-    tireHealth?: number;
-    degRateSecPerLap?: number;
-    cliffLapPredicted?: number;
-    cliffRisk?: "low" | "medium" | "high" | "critical";
-    pitStopProbability?: number;
-    pitRecommended?: boolean;
-    safetyCarProbability?: number;
-    fuelCorrectedTimeSec?: number;
-    regulationsEra?: string;
-  }>;
+  /** Present for session-wide feeds and raceevent. */
+  data?: T;
+  /** Present for per-driver normalized feeds (timingdata, etc.). */
+  drivers?: (DriverRef & { analytics?: DriverAnalytics; [key: string]: unknown })[];
 }
 
 // raceevent synthetic payload envelope
 export interface RaceEventPayload {
-  type: "raceevent";
+  feed: "raceevent";
   sessionId: string | null;
   event: RaceEventType;
   lap: number;
