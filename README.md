@@ -38,7 +38,7 @@ Your endpoint will now receive JSON payloads like:
 
 ```json
 {
-  "type": "raceevent",
+  "feed": "raceevent",
   "sessionId": "9724",
   "event": "overtake",
   "lap": 34,
@@ -54,7 +54,7 @@ Your endpoint will now receive JSON payloads like:
 ## Verify signatures in your endpoint
 
 ```ts
-import { verifySignature } from "racehooks";
+import { verifySignatureBoolean } from "racehooks";
 import type { IncomingMessage } from "http";
 
 function readBody(req: IncomingMessage): Promise<Buffer> {
@@ -70,7 +70,7 @@ app.post("/f1-hook", async (req, res) => {
   const raw = await readBody(req);
   const sig = req.headers["x-racehooks-signature"] as string;
 
-  if (!verifySignature(raw, sig, process.env.WEBHOOK_SECRET!)) {
+  if (!verifySignatureBoolean(raw, sig, process.env.WEBHOOK_SECRET!)) {
     return res.status(401).send("Bad signature");
   }
 
@@ -152,23 +152,19 @@ await rh.usage.history();        // last 90 periods
 
 ## Analytics tier
 
-On the [Analytics tier](https://racehooks.io/pricing), `timingdata`, `cardata`, and `tyrestintseries` webhook payloads include ML-computed `analytics.*` fields per driver:
+On the [Analytics tier](https://racehooks.io/pricing), `timingdata`, `cardata`, and `tyrestintseries` webhook payloads include ML-computed `analytics` fields inline within each `drivers[]` entry:
 
 ```ts
 import type { WebhookPayload } from "racehooks";
 
 app.post("/hook", (req, res) => {
   const payload: WebhookPayload = req.body;
-  const driverNumber = "1";
-  const driver1analytics = payload.analytics?.[driverNumber];
-  // {
-  //   tireHealth: 0.72,
-  //   cliffLapPredicted: 38,
-  //   cliffRisk: "medium",
-  //   pitStopProbability: 0.31,
-  //   pitRecommended: false,
-  //   safetyCarProbability: 0.12,
-  // }
+  // Per-driver analytics are inline in each drivers[] entry
+  const ver = payload.drivers?.find(d => d.tla === "VER");
+  const analytics = ver?.analytics;
+  // { tireHealth: { tireHealth: 0.72, cliffRisk: "medium" },
+  //   pitStopProbability: 0.31, pitRecommended: false,
+  //   safetyCarProbability: 0.12 }
 });
 ```
 
