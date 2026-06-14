@@ -237,8 +237,12 @@ export interface DriverAnalytics {
   pitStopProbability?: number;
   /** True when pitStopProbability exceeds the era-calibrated threshold. */
   pitRecommended?: boolean;
-  /** Safety-car deployment probability for the next lap, 0.0–1.0. */
+  /** Combined safety-car deployment probability for the next lap, 0.0–1.0 (SC + VSC). */
   safetyCarProbability?: number;
+  /** P(full Safety Car deployed next lap), 0.0–1.0. Split from safetyCarProbability using historical base rates. */
+  scProbability?: number;
+  /** P(Virtual Safety Car deployed next lap), 0.0–1.0. Split from safetyCarProbability using historical base rates. */
+  vscProbability?: number;
   /** Overtake success probability for a detected overtake attempt, 0.0–1.0. */
   overtakeProbability?: number;
   /** Win/podium probability from the CTMC model. */
