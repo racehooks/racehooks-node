@@ -25,6 +25,16 @@ export class SimulateNamespace {
     return res.data;
   }
 
+  async pause(simulationId: string): Promise<Simulation> {
+    const res = await this.http.post<{ data: Simulation }>(`/simulate/${simulationId}/pause`);
+    return res.data;
+  }
+
+  async resume(simulationId: string): Promise<Simulation> {
+    const res = await this.http.post<{ data: Simulation }>(`/simulate/${simulationId}/resume`);
+    return res.data;
+  }
+
   async cancel(simulationId: string): Promise<void> {
     await this.http.delete(`/simulate/${simulationId}`);
   }

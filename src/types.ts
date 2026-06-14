@@ -149,17 +149,106 @@ export interface DriverRef {
   [key: string]: unknown;
 }
 
-/** Analytics block included inline per-driver in normalized feeds. */
+// ---------------------------------------------------------------------------
+// Analytics sub-types (Analytics tier — present when `analyticsEnrichment` is true)
+// ---------------------------------------------------------------------------
+
+export type CliffRisk = "NONE" | "GRAINING" | "THERMAL" | "BLISTERING_RISK" | "BLISTERING";
+export type DegMode = "WARM_UP" | "STABLE" | "DEGRADING" | "CLIFF";
+export type HealthLabel = "GOOD" | "MODERATE" | "LOW" | "CRITICAL";
+
+/** Full tyre-degradation snapshot delivered per driver in `timingdata` payloads. */
+export interface TireHealthSnapshot {
+  /** 0.0–1.0 (1.0 = fresh, 0.0 = fully spent performance budget). */
+  tireHealth: number;
+  /** 0–100 display value (tireHealth × 100, rounded). */
+  tireHealthPct: number;
+  /** Kalman-filtered degradation rate in seconds per lap (positive = degrading). */
+  degRateSecPerLap: number;
+  /** Estimated race lap at which the performance cliff occurs; null during warm-up. */
+  cliffLapPredicted: number | null;
+  /** cliffLapPredicted − currentRaceLap; falls back to compoundMaxLaps − tyreLife. */
+  remainingUsefulLife: number;
+  /** Qualitative cliff-risk classification. */
+  cliffRisk: CliffRisk;
+  /** Total fuel-corrected time lost this stint (seconds). */
+  cumulativeDegSec: number;
+  /** Number of laps on this set. */
+  stintLaps: number;
+  /** 95% confidence-interval lower bound on tireHealth. */
+  confidenceLow: number;
+  /** 95% confidence-interval upper bound on tireHealth. */
+  confidenceHigh: number;
+  /** Active degradation mode. */
+  degModeActive: DegMode;
+  /** Human-readable tyre-health label. */
+  healthLabel: HealthLabel;
+}
+
+/** Win/podium probability snapshot delivered per driver in `timingdata` payloads. */
+export interface WinProbabilitySnapshot {
+  driverNumber: string;
+  /** P(finish P1), 0.0–1.0. */
+  winProbability: number;
+  /** P(finish P1–P3), 0.0–1.0. */
+  podiumProbability: number;
+  /** Expected Championship Points this race. */
+  ecp: number;
+  /** ECP delta from the previous lap. */
+  ecpa: number;
+  /** P(finish at each position), 1-indexed (index 0 unused). */
+  positionDistribution: number[];
+}
+
+/** Lap-Time Over Expectation snapshot (LTOE) — present when model confidence is sufficient. */
+export interface LTOESnapshot {
+  /** Actual − expected fuel-corrected lap time (negative = driver faster than context). */
+  ltoeSec: number;
+  /** Model-predicted fuel-corrected lap time for this lap. */
+  expectedLapTimeSec: number;
+  /** Driver's actual fuel-corrected lap time. */
+  actualLapTimeSec: number;
+  /** Calibration scale factor; < 1.0 indicates reduced confidence (e.g. early 2026 era). */
+  confidenceScale: number;
+}
+
+/** Undercut threat assessment delivered per driver in `timingdata` payloads. */
+export interface UndercutThreatSnapshot {
+  /** Composite undercut threat score (0–1). */
+  score: number;
+  /** Whether an undercut is strategically viable for this driver. */
+  viable: boolean;
+  /** Current gap to the car directly ahead (seconds). */
+  gapToCarAheadSec: number;
+  /** Estimated net time delta from executing an undercut (seconds; negative = gain). */
+  estimatedDeltaSec: number;
+}
+
+/**
+ * Analytics block included inline per-driver in `timingdata` payloads
+ * (Analytics tier subscribers only).
+ */
 export interface DriverAnalytics {
-  tireHealth?: number;
-  degRateSecPerLap?: number;
-  cliffLapPredicted?: number;
-  cliffRisk?: "low" | "medium" | "high" | "critical";
-  pitStopProbability?: number;
-  pitRecommended?: boolean;
-  safetyCarProbability?: number;
-  fuelCorrectedTimeSec?: number;
+  /** Regulations era — `"2026"` or `"pre-2026"`. */
   regulationsEra?: string;
+  /** Full tyre-degradation model output. */
+  tireHealth?: TireHealthSnapshot;
+  /** Pit-stop probability from the BiLSTM model, 0.0–1.0. */
+  pitStopProbability?: number;
+  /** True when pitStopProbability exceeds the era-calibrated threshold. */
+  pitRecommended?: boolean;
+  /** Safety-car deployment probability for the next lap, 0.0–1.0. */
+  safetyCarProbability?: number;
+  /** Overtake success probability for a detected overtake attempt, 0.0–1.0. */
+  overtakeProbability?: number;
+  /** Win/podium probability from the CTMC model. */
+  winProbability?: WinProbabilitySnapshot;
+  /** Undercut threat assessment relative to the car ahead. */
+  undercutThreat?: UndercutThreatSnapshot;
+  /** Lap-Time Over Expectation model output. */
+  ltoe?: LTOESnapshot;
+  /** LTOE confidence qualifier — `"stable"` after 8+ 2026 races; `"2026_early"` before. */
+  ltoeConfidenceFlag?: "2026_early" | "stable";
 }
 
 // Webhook payload envelope delivered to your endpoint.

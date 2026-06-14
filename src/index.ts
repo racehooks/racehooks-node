@@ -35,6 +35,15 @@ export type {
   CreateWebhookOptions,
   CreateWebhookResult,
   PaginatedResult,
+  // Analytics sub-types
+  DriverAnalytics,
+  TireHealthSnapshot,
+  WinProbabilitySnapshot,
+  LTOESnapshot,
+  UndercutThreatSnapshot,
+  CliffRisk,
+  DegMode,
+  HealthLabel,
 } from "./types.js";
 
 export type {
