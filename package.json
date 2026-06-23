@@ -1,0 +1,85 @@
+{
+  "name": "racehooks",
+  "version": "0.3.0",
+  "description": "Official Node.js SDK for RaceHooks — motorsport analytics and data delivery platform",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/racehooks/racehooks-node.git"
+  },
+  "homepage": "https://racehooks.io",
+  "bugs": {
+    "url": "https://github.com/racehooks/racehooks-node/issues"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage"
+  },
+  "keywords": [
+    "f1",
+    "formula1",
+    "formula-1",
+    "webhook",
+    "racing",
+    "live-timing",
+    "realtime",
+    "sdk",
+    "api",
+    "typescript",
+    "motorsport",
+    "f1-api",
+    "race-data"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.19.41",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.4.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "jest": {
+    "preset": "ts-jest/presets/default-esm",
+    "testEnvironment": "node",
+    "extensionsToTreatAsEsm": [".ts"],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "transform": {
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "useESM": true
+        }
+      ]
+    },
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ]
+  }
+}
