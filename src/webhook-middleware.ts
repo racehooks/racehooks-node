@@ -61,7 +61,7 @@ export interface NodeLikeResponse {
  * // Express (using express.raw({ type: "application/json" })):
  * app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
  *   const event = constructEvent(req.body, req.headers["x-racehooks-signature"], secret);
- *   if (event.feed === "raceevent") { ... }
+ *   if (event.feed === "events.race") { ... }
  *   res.json({ received: true });
  * });
  * ```
@@ -126,7 +126,7 @@ export function safeConstructEvent(
  *   "/webhook",
  *   express.raw({ type: "application/json" }),
  *   webhookHandler(process.env.WEBHOOK_SECRET!, async (event) => {
- *     if (event.feed === "raceevent") { ... }
+ *     if (event.feed === "events.race") { ... }
  *   }),
  * );
  *

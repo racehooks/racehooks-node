@@ -51,7 +51,7 @@ const DEFAULT_TIMEOUT_MS = 15_000;
  *
  * // Subscribe to race events for Ferrari only
  * const { webhook } = await rh.webhooks.create({
- *   feedId:     "raceevent",
+ *   feedId:     "events.race",
  *   webhookUrl: "https://yourserver.com/hook",
  *   filters:    { constructors: ["ferrari"] },
  * });
@@ -59,7 +59,7 @@ const DEFAULT_TIMEOUT_MS = 15_000;
  * // In your webhook endpoint:
  * app.post("/hook", express.raw({ type: "application/json" }), (req, res) => {
  *   const event = rh.constructEvent(req.body, req.headers["x-racehooks-signature"]);
- *   if (event.feed === "raceevent") { ... }
+ *   if (event.feed === "events.race") { ... }
  *   res.json({ received: true });
  * });
  * ```
@@ -155,7 +155,7 @@ export class RaceHooks {
    *   "/webhook",
    *   express.raw({ type: "application/json" }),
    *   rh.webhookHandler(async (event) => {
-   *     if (event.feed === "raceevent") { ... }
+   *     if (event.feed === "events.race") { ... }
    *   }),
    * );
    * ```

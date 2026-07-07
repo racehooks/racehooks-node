@@ -25,7 +25,7 @@ const rh = new RaceHooks({
 
 // Subscribe to all race events (overtakes, pit stops, safety cars, DNFs, …)
 const { webhook, webhookSecret } = await rh.webhooks.create({
-  feedId:     "raceevent",
+  feedId:     "events.race",
   webhookUrl: "https://yourserver.com/webhook",
 });
 
@@ -37,18 +37,28 @@ Your endpoint will now receive JSON payloads like:
 
 ```json
 {
-  "feed": "raceevent",
+  "feed": "events.race",
   "sessionId": "9724",
   "event": "overtake",
   "lap": 34,
   "utc": "2026-06-01T14:23:01.123Z",
   "data": {
-    "driver": "4",  "tla": "NOR",  "team": "McLaren F1 Team",
-    "fromPosition": 2, "toPosition": 1,
-    "displaced": { "driver": "1", "tla": "VER", "team": "Red Bull Racing" }
+    "overtakingDriver": {
+      "number": "4", "driverId": "lando_norris", "constructorId": "mclaren",
+      "tla": "NOR", "name": "Lando Norris", "team": "McLaren F1 Team",
+      "newPosition": 1, "prevPosition": 2
+    },
+    "overtakenDriver": {
+      "number": "1", "driverId": "max_verstappen", "constructorId": "red-bull",
+      "tla": "VER", "name": "Max Verstappen", "team": "Red Bull Racing",
+      "newPosition": 2, "prevPosition": 1
+    }
   }
 }
 ```
+
+Every payload carries the full **`DriverRef`** identity block (`number`, `driverId`,
+`constructorId`, `tla`, `name`, `team`) — no need to join against `driver.list`.
 
 ## Verify signatures in your endpoint
 
@@ -86,7 +96,7 @@ Narrow which payloads get delivered — any combination of driver TLAs, construc
 ```ts
 // Ferrari drivers only, while they're in the top 5
 await rh.webhooks.create({
-  feedId:     "timingdata",
+  feedId:     "timing.data",
   webhookUrl: "https://yourserver.com/webhook",
   filters: {
     constructors: ["ferrari"],
@@ -96,7 +106,7 @@ await rh.webhooks.create({
 
 // Overtakes and pit stops for VER and NOR only
 await rh.webhooks.create({
-  feedId:     "raceevent",
+  feedId:     "events.race",
   webhookUrl: "https://yourserver.com/webhook",
   filters: { drivers: ["VER", "NOR"] },
 });
@@ -104,7 +114,7 @@ await rh.webhooks.create({
 
 ## Race Events feed
 
-Subscribe to [`feedId: "raceevent"`](https://docs.racehooks.io/feeds/raceevent) to receive structured events derived from live timing:
+Subscribe to [`feedId: "events.race"`](https://docs.racehooks.io/feeds/events.race) to receive structured events derived from live timing:
 
 | event | when |
 |-------|------|
@@ -120,10 +130,13 @@ Subscribe to [`feedId: "raceevent"`](https://docs.racehooks.io/feeds/raceevent) 
 
 ## Analytics tier
 
-On the [Analytics tier](https://racehooks.io/pricing), RaceHooks delivers **18 derived analytics feeds** — 12 `analytics.*` plus 6 `weather.*` — backed by twelve production ML models and an algorithmic intelligence layer (CTMC win/podium probability with a full position distribution, ECP/ECPA, EKF tyre health). Each is an independently-subscribable feed with a fully-typed payload:
+On the [Analytics tier](https://racehooks.io/pricing), RaceHooks delivers a suite of derived
+`analytics.*` and `weather.*` feeds, backed by production ML models and an algorithmic
+intelligence layer (CTMC win/podium probability with a full position distribution, ECP/ECPA,
+EKF tyre health). Each is an independently-subscribable feed with a fully-typed payload:
 
 ```ts
-import type { AnalyticsStrategyPayload } from "racehooks";
+import type { StrategyPayload } from "racehooks";
 
 // Per-lap strategy signals: pit probability, undercut threat, tyre health, LTOE
 await rh.webhooks.create({
@@ -132,19 +145,22 @@ await rh.webhooks.create({
 });
 
 app.post("/webhook", (req, res) => {
-  const payload: AnalyticsStrategyPayload = req.body;
+  const payload: StrategyPayload = req.body;
   for (const d of payload.drivers) {
-    console.log(d.tla, d.pitStopProbability, d.tireHealth?.healthLabel, d.ltoe?.ltoeSec);
+    // Each driver spreads the full DriverRef, plus optional per-model snapshots.
+    console.log(d.tla, d.pitStopProbability, d.tireHealth?.tireHealth, d.ltoe?.ltoeSec);
   }
   res.sendStatus(200);
 });
 ```
 
-Every feed has a matching exported payload type:
+Every feed's `feed` discriminator is its canonical (hyphenated) feedId, and each has a
+matching exported payload type:
 
-- **Strategy & outcomes:** `analytics.strategy`, `analytics.race-odds`, `analytics.gap-projection`, `analytics.tire-strategy`, `analytics.constructor`, `analytics.championship-probability`, `analytics.qualifying`
+- **Strategy & outcomes:** `analytics.strategy`, `analytics.race-odds`, `analytics.true-pace`, `analytics.gap-projection`, `analytics.winning-margin`, `analytics.tire-strategy`, `analytics.team-points`, `analytics.championship-probability`, `analytics.qualifying`
+- **Pre-race & duration:** `analytics.race-preview`, `analytics.race-duration`
 - **Live alerts:** `analytics.sector-pace`, `analytics.battle`, `analytics.pit-window`, `analytics.track-conditions`, `analytics.pit-quality`
-- **Predictive weather:** `weather.forecast_update`, `weather.rain_onset`, `weather.rain_cleared`, `weather.tyre_mismatch`, `weather.strategy_divergence`, `weather.compound_crossover_alert`
+- **Predictive weather:** `weather.forecast-update`, `weather.rain-onset`, `weather.rain-cleared`, `weather.tire-mismatch`, `weather.strategy-divergence`, `weather.compound-crossover`
 
 ## Historical data & insights
 
