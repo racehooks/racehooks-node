@@ -26,13 +26,13 @@ const SECRET = "whsec_test_0123456789abcdef0123456789abcdef";
 
 const WEATHER_BODY = JSON.stringify({
   feed: "weather.data",
-  sessionId: "2026-bahrain-r1",
+  sessionId: "2026-bahrain_r",
   data: { AirTemp: "24.1", TrackTemp: "31.0", Rainfall: "0" },
 });
 
 const RACE_EVENT_BODY = JSON.stringify({
   feed: "events.race",
-  sessionId: "2026-bahrain-r1",
+  sessionId: "2026-bahrain_r",
   event: "safety.car.deployed",
   lap: 12,
   utc: "2026-03-16T15:42:10.000Z",
@@ -225,7 +225,7 @@ describe("constructEvent", () => {
     const sig = serverSign(SECRET, WEATHER_BODY);
     const event = constructEvent(WEATHER_BODY, sig, SECRET);
     expect(event.feed).toBe("weather.data");
-    expect((event as { sessionId: string }).sessionId).toBe("2026-bahrain-r1");
+    expect((event as { sessionId: string }).sessionId).toBe("2026-bahrain_r");
   });
 
   it("works with Buffer payload", () => {

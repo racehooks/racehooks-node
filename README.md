@@ -1,6 +1,6 @@
 # racehooks
 
-Official Node.js/TypeScript SDK for [RaceHooks](https://racehooks.io) — the motorsports analytics platform. Subscribe to 50+ live F1 feeds with twelve production ML models in every Analytics-tier payload, verify HMAC signatures, and query live and historical race data — all fully typed.
+Official Node.js/TypeScript SDK for [RaceHooks](https://racehooks.io) — the motorsports analytics platform. Subscribe to 50+ live F1 feeds with production ML models enriching every Analytics-tier payload, verify HMAC signatures, and query live and historical race data — all fully typed.
 
 [![npm](https://img.shields.io/npm/v/racehooks)](https://www.npmjs.com/package/racehooks)
 [![Node.js ≥ 18](https://img.shields.io/node/v/racehooks)](https://nodejs.org)
@@ -38,7 +38,7 @@ Your endpoint will now receive JSON payloads like:
 ```json
 {
   "feed": "events.race",
-  "sessionId": "9724",
+  "sessionId": "2026-bahrain_r",
   "event": "overtake",
   "lap": 34,
   "utc": "2026-06-01T14:23:01.123Z",
@@ -114,7 +114,7 @@ await rh.webhooks.create({
 
 ## Race Events feed
 
-Subscribe to [`feedId: "events.race"`](https://docs.racehooks.io/feeds/events.race) to receive structured events derived from live timing:
+Subscribe to [`feedId: "events.race"`](https://racehooks.io/docs/feeds/race-events) to receive structured events derived from live timing:
 
 | event | when |
 |-------|------|
@@ -201,7 +201,7 @@ await rh.events.list();
 await rh.live.context();     // current drivers, positions, flag, RC messages
 
 // Simulate (replay historical sessions against your webhooks)
-const sim = await rh.simulate.start({ sessionId: "...", speed: 10 });
+const sim = await rh.simulate.start({ sessionId: "2026-bahrain_r", speed: 10 });
 await rh.simulate.get(sim.simulationId);
 await rh.simulate.cancel(sim.simulationId);
 
@@ -224,7 +224,7 @@ await rh.telemetry.getRaceSummary("2026-bahrain-r1");
 
 // Fantasy scoring
 await rh.fantasy.getRaceScores("2026-bahrain-r1");
-await rh.fantasy.getSessionPitTimes("2026-bahrain-r1_Race");
+await rh.fantasy.getSessionPitTimes("2026-bahrain_r");
 
 // Usage & billing
 await rh.usage.subscription();   // tier, limits, usage snapshot
@@ -240,10 +240,10 @@ await rh.usage.history();        // last 90 periods
 
 ## Links
 
-- [RaceHooks console](https://racehooks.io) — sign up and manage your account
-- [RaceHooks API documentation](https://docs.racehooks.io)
-- [Webhook API reference](https://docs.racehooks.io/api)
-- [Feed catalog](https://docs.racehooks.io/feeds)
+- [RaceHooks console](https://racehooks.io/console) — sign up and manage your account
+- [RaceHooks API documentation](https://racehooks.io/docs)
+- [Webhook API reference](https://racehooks.io/docs/webhooks)
+- [Feed catalog](https://racehooks.io/docs/feeds)
 - [GitHub](https://github.com/racehooks/racehooks-node)
 - [npm](https://www.npmjs.com/package/racehooks)
 

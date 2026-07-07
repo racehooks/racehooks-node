@@ -69,7 +69,7 @@ describe("StrategyPayload", () => {
     const undercutThreat: StrategyUndercutThreat = { score: 0.78, viable: true, gapToCarAheadSec: 1.1, estimatedDeltaSec: -0.6 };
     const payload: StrategyPayload = {
       feed: "analytics.strategy",
-      sessionId: "2026-bahrain-r1",
+      sessionId: "2026-bahrain_r",
       raceId: "2026-bahrain-r1",
       lap: 22,
       utc: "2026-03-16T14:22:00.000Z",
@@ -105,7 +105,7 @@ describe("RaceOddsPayload", () => {
     ];
     const payload: RaceOddsPayload = {
       feed: "analytics.race-odds",
-      sessionId: "2026-bahrain-r1",
+      sessionId: "2026-bahrain_r",
       raceId: "2026-bahrain-r1",
       lap: 22,
       utc: "2026-03-16T14:22:00.000Z",
@@ -139,7 +139,7 @@ describe("TeamPointsPayload", () => {
   it("keys by constructorId with a numeric points distribution", () => {
     const payload: TeamPointsPayload = {
       feed: "analytics.team-points",
-      sessionId: "2026-bahrain-r1",
+      sessionId: "2026-bahrain_r",
       raceId: "2026-bahrain-r1",
       lap: 22,
       utc: "2026-03-16T14:22:00.000Z",
@@ -158,7 +158,7 @@ describe("QualifyingAnalyticsPayload", () => {
   it("carries segment, circuitId, and per-sector DriverRef arrays", () => {
     const payload: QualifyingAnalyticsPayload = {
       feed: "analytics.qualifying",
-      sessionId: "2026-bahrain-q",
+      sessionId: "2026-bahrain_q",
       raceId: null,
       utc: "2026-03-15T14:00:00.000Z",
       segment: "Q3",
@@ -182,7 +182,7 @@ describe("analytics alert feed payloads", () => {
   it("analytics.sector-pace nests a full DriverRef and DriverRef[] for correlated drivers", () => {
     const p: SectorPacePayload = {
       feed: "analytics.sector-pace",
-      sessionId: "9724",
+      sessionId: "2026-monaco_r",
       lap: 18,
       utc: "2026-06-01T14:23:01.123Z",
       data: {
@@ -206,19 +206,19 @@ describe("analytics alert feed payloads", () => {
 
   it("battle, pit-window, track-conditions, pit-quality envelopes", () => {
     const battle: BattlePayload = {
-      feed: "analytics.battle", sessionId: "9724", lap: 30, utc: "2026-06-01T14:30:00Z",
+      feed: "analytics.battle", sessionId: "2026-monaco_r", lap: 30, utc: "2026-06-01T14:30:00Z",
       data: { attacker: NOR, defender: VER, currentGapSec: 0.8, catchRateSecPerLap: 0.2, lapsToStrikingDistance: 4, battleStatus: "APPROACHING", forecast: { passProbabilityPerLap: 0.1, pPassWithinHorizon: 0.4, horizonLaps: 5 } },
     };
     const pitWindow: PitWindowPayload = {
-      feed: "analytics.pit-window", sessionId: "9724", lap: 22, utc: "2026-06-01T14:22:00Z",
+      feed: "analytics.pit-window", sessionId: "2026-monaco_r", lap: 22, utc: "2026-06-01T14:22:00Z",
       data: { driver: VER, raceLap: 22, status: "URGENT", pitProbability: 0.74, undercutViable: true, cliffRisk: "THERMAL", overrideReason: null, vscNetDeltaSec: null, pitCount: 1 },
     };
     const track: TrackConditionsPayload = {
-      feed: "analytics.track-conditions", sessionId: "9724", lap: 12, utc: "2026-06-01T14:12:00Z",
+      feed: "analytics.track-conditions", sessionId: "2026-monaco_r", lap: 12, utc: "2026-06-01T14:12:00Z",
       data: { sector1: "WET", sector2: "DRYING", sector3: "DRY", fullCircuitWet: false, intermediateWindowOpen: true, crossoverRecommended: false, lastUpdatedLap: 12 },
     };
     const pitQuality: PitQualityPayload = {
-      feed: "analytics.pit-quality", sessionId: "9724", lap: 22, utc: "2026-06-01T14:22:30Z",
+      feed: "analytics.pit-quality", sessionId: "2026-monaco_r", lap: 22, utc: "2026-06-01T14:22:30Z",
       data: { driver: VER, raceLap: 22, stationaryTimeSec: 2.3, teamSessionAverageSec: 2.6, vsTeamSessionAverageSec: -0.3, quality: "EXCEPTIONAL", stopNumber: 1 },
     };
     expect(battle.data.attacker.tla).toBe("NOR");
@@ -233,16 +233,16 @@ describe("analytics alert feed payloads", () => {
 describe("weather alert feed payloads", () => {
   it("weather.rain-onset + forecast-update + tire-mismatch envelopes", () => {
     const rain: RainOnsetPayload = {
-      feed: "weather.rain-onset", sessionId: "9724", lap: 14, utc: "2026-06-01T14:14:00Z",
+      feed: "weather.rain-onset", sessionId: "2026-monaco_r", lap: 14, utc: "2026-06-01T14:14:00Z",
       data: { lap: 14, precipRateMmhr: 1.2, rainStartLap: null, durationLaps: null, trackTempC: 28, airTempC: 19, humidity: 88 },
     };
     const forecast: ForecastUpdatePayload = {
-      feed: "weather.forecast-update", sessionId: "9724", lap: 10, utc: "2026-06-01T14:10:00Z",
+      feed: "weather.forecast-update", sessionId: "2026-monaco_r", lap: 10, utc: "2026-06-01T14:10:00Z",
       source: "forecast", currentPrecipRateMmhr: 0, precipProbabilityPct: 65, rainExpectedInMin: 15,
       next60min: [{ timeUtc: "2026-06-01T14:25:00Z", precipRateMmhr: 0.8, precipProbabilityPct: 70 }],
     };
     const mismatch: TireMismatchPayload = {
-      feed: "weather.tire-mismatch", sessionId: "9724", lap: 15, utc: "2026-06-01T14:15:00Z",
+      feed: "weather.tire-mismatch", sessionId: "2026-monaco_r", lap: 15, utc: "2026-06-01T14:15:00Z",
       driver: NOR, currentCompound: "MEDIUM", severity: "urgent", trigger: "raining_now",
       expectedWetOnsetLap: 15, rainProbabilityNext5Laps: 0.82, intermediateWindowOpen: true,
     };
@@ -253,7 +253,7 @@ describe("weather alert feed payloads", () => {
 
   it("weather.strategy-divergence + compound-crossover envelopes", () => {
     const divergence: StrategyDivergencePayload = {
-      feed: "weather.strategy-divergence", sessionId: "9724", lap: 16, utc: "2026-06-01T14:16:00Z",
+      feed: "weather.strategy-divergence", sessionId: "2026-monaco_r", lap: 16, utc: "2026-06-01T14:16:00Z",
       data: {
         onWetCompounds: { count: 8, drivers: [VER, NOR], avgLapDeltaVsBaselineSec: -1.4 },
         onDryCompounds: { count: 12, drivers: [], avgLapDeltaVsBaselineSec: 2.1 },
@@ -261,7 +261,7 @@ describe("weather alert feed payloads", () => {
       },
     };
     const crossover: CompoundCrossoverPayload = {
-      feed: "weather.compound-crossover", sessionId: "9724", lap: 24, utc: "2026-06-01T14:24:00Z",
+      feed: "weather.compound-crossover", sessionId: "2026-monaco_r", lap: 24, utc: "2026-06-01T14:24:00Z",
       direction: "inter_to_slick", confidence: 0.78,
       evidence: { driversOnSlick: [{ ...NOR, ltoeSec: -0.6 }], driversOnInter: [{ ...VER, ltoeSec: 0.4 }] },
       rainClearedLap: 20, estimatedLapsUntilAllOnSlick: 3,
@@ -283,7 +283,7 @@ describe("event feed payloads", () => {
       overtakenDriver: { ...VER, newPosition: 4, prevPosition: 3 },
     };
     const overtake: RaceEventPayload = {
-      feed: "events.race", sessionId: "9724", lap: 12, utc: "2026-06-01T14:12:00Z",
+      feed: "events.race", sessionId: "2026-monaco_r", lap: 12, utc: "2026-06-01T14:12:00Z",
       event: "overtake", data: overtakeData,
     };
     expect(overtake.feed).toBe("events.race");
@@ -293,7 +293,7 @@ describe("event feed payloads", () => {
   it("events.qualifying carries qualifying-specific events", () => {
     const poleData: QualifyingPolePositionData = { driver: VER, lapTime: { display: "1:27.412", ms: 87412 }, marginToP2Ms: 142 };
     const pole: QualifyingEventPayload = {
-      feed: "events.qualifying", sessionId: "2026-bahrain-q", lap: 1, utc: "2026-03-15T15:00:00Z",
+      feed: "events.qualifying", sessionId: "2026-bahrain_q", lap: 1, utc: "2026-03-15T15:00:00Z",
       event: "qualifying.pole_position", data: poleData,
     };
     expect(pole.feed).toBe("events.qualifying");
@@ -330,7 +330,7 @@ describe("WebhookPayload + FeedId", () => {
   it("per-driver feeds carry a `drivers` array of DriverRef", () => {
     const raw = JSON.stringify({
       feed: "timing.data",
-      sessionId: "2026-bahrain-r1",
+      sessionId: "2026-bahrain_r",
       utc: "2026-03-16T14:22:00Z",
       drivers: [{ ...VER, position: 1, gapToLeader: { display: "0.000", seconds: 0 } }],
     });

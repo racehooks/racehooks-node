@@ -8,7 +8,7 @@ function makeSimulation(overrides: Partial<Simulation> = {}): Simulation {
   return {
     simulationId: "sim-001",
     clientId: "client-001",
-    sessionId: "2026-bahrain-r1",
+    sessionId: "2026-bahrain_r",
     sessionName: "Race",
     sessionPath: "2026/2026-03-16_Bahrain_Grand_Prix/2026-03-16_Race/",
     status: "running",
@@ -62,7 +62,7 @@ describe("SimulateNamespace.start", () => {
     const { http, calls } = makeHttp({ "/simulate": { data: sim } });
     const ns = new SimulateNamespace(http);
 
-    const result = await ns.start({ sessionId: "2026-bahrain-r1", speed: 1 });
+    const result = await ns.start({ sessionId: "2026-bahrain_r", speed: 1 });
     expect(result.simulationId).toBe("sim-001");
     expect(calls[0].method).toBe("POST");
     expect(calls[0].path).toBe("/simulate");
