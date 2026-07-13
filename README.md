@@ -222,9 +222,11 @@ await rh.insights.getModelMeta();
 await rh.telemetry.getRaceLaps("2026-bahrain-r1", { driverId: "max_verstappen" });
 await rh.telemetry.getRaceSummary("2026-bahrain-r1");
 
-// Fantasy scoring
-await rh.fantasy.getRaceScores("2026-bahrain-r1");
-await rh.fantasy.getSessionPitTimes("2026-bahrain_r");
+// Fantasy scoring (paid plan)
+await rh.fantasy.getRaceScores("2026-bahrain-r1");                     // Grand Prix points
+await rh.fantasy.getRaceScores("2026-bahrain-r1", { session: "sprint" }); // Sprint points
+await rh.fantasy.getSessionScores("2026-bahrain-r1_Race");            // live running score
+await rh.fantasy.getSessionPitTimes("2026-bahrain-r1_Race");         // pit-lane leaderboard
 
 // Usage & billing
 await rh.usage.subscription();   // tier, limits, usage snapshot
