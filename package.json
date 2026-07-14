@@ -31,7 +31,8 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
-    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage"
+    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage",
+    "release": "semantic-release"
   },
   "keywords": [
     "f1",
@@ -53,9 +54,15 @@
     "access": "public"
   },
   "devDependencies": {
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^12.0.9",
+    "@semantic-release/npm": "^13.1.5",
+    "@semantic-release/release-notes-generator": "^14.1.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.19.41",
     "jest": "^29.7.0",
+    "semantic-release": "^25.0.7",
     "ts-jest": "^29.4.0",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3"
@@ -66,7 +73,9 @@
   "jest": {
     "preset": "ts-jest/presets/default-esm",
     "testEnvironment": "node",
-    "extensionsToTreatAsEsm": [".ts"],
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
     "moduleNameMapper": {
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },
