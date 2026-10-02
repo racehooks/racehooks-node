@@ -12,14 +12,65 @@ export interface WebhookFilters {
   eventTypes?: string[];
 }
 
+/**
+ * One feed subscription row (the legacy per-feed "flat" shape). Returned by
+ * `webhooks.list()` (`GET /v1/webhooks?shape=flat`) and inside the legacy
+ * single-`feedId` create response.
+ */
 export interface Webhook {
   webhookId: string;
   feedId: string;
+  seriesId: string;
   webhookUrl: string;
   webhookMethod: "post" | "put";
   active: boolean;
   subscriptionTier: SubscriptionTier;
   filters: WebhookFilters;
+  consecutiveFailures: number;
+  /** ISO timestamp when the subscription was auto-disabled after repeated failures, else null. */
+  autoDisabledAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** One feed on an endpoint (an element of `WebhookEndpoint.subscriptions`). */
+export interface WebhookSubscription {
+  feedId: string;
+  seriesId: string;
+  filters: WebhookFilters;
+  active: boolean;
+  subscriptionTier: SubscriptionTier;
+  consecutiveFailures: number;
+  autoDisabledAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** 7-day delivery stats for an endpoint (present on `webhooks.get()`). */
+export interface WebhookEndpointStats {
+  /** Share of 2xx deliveries over the last 7 days, or null when there were none. */
+  successRate7d: number | null;
+  totalDeliveries7d: number;
+  lastDeliveryAt: string | null;
+}
+
+/**
+ * A webhook endpoint: one URL + signing secret grouping one or more feed
+ * subscriptions. Returned by `webhooks.get()`, `webhooks.update()` and
+ * `webhooks.listEndpoints()`.
+ */
+export interface WebhookEndpoint {
+  webhookId: string;
+  webhookUrl: string;
+  webhookMethod: "post" | "put";
+  seriesId: string;
+  /** True when at least one subscription on the endpoint is active. */
+  active: boolean;
+  subscriptionTier: SubscriptionTier;
+  feedCount: number;
+  subscriptions: WebhookSubscription[];
+  /** Only populated by `webhooks.get()`. */
+  stats?: WebhookEndpointStats;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,13 +82,22 @@ export interface Feed {
   availability: SubscriptionTier;
 }
 
+/**
+ * One delivery attempt record from `GET /v1/webhooks/:id/logs`. The server does
+ * not return the delivered payload body.
+ */
 export interface DeliveryLog {
   logId: string;
   webhookId: string;
+  /** HTTP status your endpoint returned; 0 = no response (DNS/TLS/timeout/refused). */
   statusCode: number;
   retryCount: number;
   errorMessage: string | null;
-  payload: string;
+  durationMs: number | null;
+  /** ISO timestamp when the delivery was dead-lettered, else null. */
+  deadAt: string | null;
+  /** Convenience flag: `deadAt !== null`. */
+  dead: boolean;
   createdAt: string;
 }
 
@@ -1435,17 +1495,63 @@ export interface WebhookPayload<T = unknown> {
   _replay?: ReplayMeta;
 }
 
-export interface CreateWebhookOptions {
-  feedId: string;
+interface CreateWebhookBase {
   webhookUrl: string;
   webhookMethod?: "post" | "put";
+  /** Series the feeds belong to. Defaults to "f1" on the server. */
+  seriesId?: string;
+  /**
+   * Single-feed form: filters for that feed. Multi-feed forms: endpoint-wide
+   * default filters, merged under each subscription's own filters.
+   */
   filters?: WebhookFilters;
 }
 
+/** Legacy single-feed create: `{ feedId }`. */
+export interface CreateWebhookSingleOptions extends CreateWebhookBase {
+  feedId: string;
+  feedIds?: never;
+  subscriptions?: never;
+}
+
+/** Multi-feed create: `{ feedIds }` — supports `"*"` (all in-tier feeds) and `"analytics.*"` globs. */
+export interface CreateWebhookFeedIdsOptions extends CreateWebhookBase {
+  feedIds: string[];
+  feedId?: never;
+  subscriptions?: never;
+}
+
+/** Multi-feed create with per-feed filters: `{ subscriptions: [{ feedId, filters? }] }`. */
+export interface CreateWebhookSubscriptionsOptions extends CreateWebhookBase {
+  subscriptions: Array<{ feedId: string; filters?: WebhookFilters }>;
+  feedId?: never;
+  feedIds?: never;
+}
+
+export type CreateWebhookOptions =
+  | CreateWebhookSingleOptions
+  | CreateWebhookFeedIdsOptions
+  | CreateWebhookSubscriptionsOptions;
+
+/** Response to the legacy single-`feedId` create form. */
 export interface CreateWebhookResult {
   webhook: Webhook;
+  /** Signing secret — returned once, at creation. */
   webhookSecret?: string;
   tier: SubscriptionTier;
+}
+
+/** Response to the `feedIds` / `subscriptions` create forms (one endpoint, many feeds). */
+export interface CreateWebhookEndpointResult {
+  webhookId: string;
+  webhookUrl: string;
+  webhookMethod?: "post" | "put";
+  subscriptions: WebhookSubscription[];
+  /** Signing secret — returned once, at creation. Absent on an Idempotency-Key replay. */
+  webhookSecret?: string;
+  tier: SubscriptionTier;
+  /** True when the server answered from an earlier request with the same Idempotency-Key. */
+  replayed?: boolean;
 }
 
 export interface PaginatedResult<T> {
@@ -1704,12 +1810,16 @@ export interface TelemetrySummary {
 // Fantasy API types (/v1/fantasy/*)
 // ---------------------------------------------------------------------------
 
+/** One stop on the fantasy pit-time leaderboard (`GET /v1/fantasy/session/:id/pit-times`). */
 export interface PitTimeStop {
+  /** Driver id slug, or car number for live-only stops. */
   driver: string;
   tla: string;
   team: string;
-  pitLaneTimeSec: number;
-  lap: number;
+  name?: string;
+  /** Stationary pit-stop time in seconds (3 dp). */
+  pitStopTimeSec: number;
+  lap: number | null;
 }
 
 export interface FantasyScoreEntry {
@@ -1789,8 +1899,11 @@ export interface RaceHooksConfig {
    */
   secret?: string;
   /**
-   * Reject deliveries whose `X-RaceHooks-Sent-At` timestamp is older than
-   * this many seconds (replay protection). `0` / omitted disables the check.
+   * Reject deliveries sent more than this many seconds ago. `0` / omitted disables it.
+   * When the delivery carries `X-RaceHooks-Signature-V1`, the check uses that header's
+   * SIGNED send time and is replay protection. Without it, the check falls back to the
+   * unsigned `X-RaceHooks-Sent-At` and is only a staleness hint — dedupe on
+   * `X-RaceHooks-Delivery-Id`.
    */
   toleranceSeconds?: number;
 }
