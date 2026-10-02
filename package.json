@@ -1,6 +1,6 @@
 {
   "name": "racehooks",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Official Node.js SDK for RaceHooks — motorsport analytics and data delivery platform",
   "type": "module",
   "repository": {
