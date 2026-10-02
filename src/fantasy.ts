@@ -8,13 +8,13 @@ export class FantasyNamespace {
   async getSessionPitTimes(sessionId: string): Promise<{
     sessionId: string;
     source: "live" | "historical";
-    fastestStop: { driver: string; pitLaneTimeSec: number; lap: number } | null;
+    fastestStop: PitTimeStop | null;
     stops: PitTimeStop[];
   }> {
     const res = await this.http.get<{ data: {
       sessionId: string;
       source: "live" | "historical";
-      fastestStop: { driver: string; pitLaneTimeSec: number; lap: number } | null;
+      fastestStop: PitTimeStop | null;
       stops: PitTimeStop[];
     } }>(`/fantasy/session/${sessionId}/pit-times`);
     return res.data;

@@ -9,6 +9,7 @@ import {
   verifySignature,
   headerValue,
   SIGNATURE_HEADER,
+  SIGNATURE_V1_HEADER,
   TIMESTAMP_HEADER,
   WebhookSignatureError,
   WebhookTimestampError,
@@ -50,9 +51,12 @@ export interface NodeLikeResponse {
  * @param payload   - Raw request body (Buffer or string) — NOT a parsed object.
  * @param signature - Value of the `X-RaceHooks-Signature` header.
  * @param secret    - Webhook signing secret from webhook creation.
- * @param options   - Optional timestamp + toleranceSeconds for replay protection.
+ * @param options   - Optional `signatureV1` (the `X-RaceHooks-Signature-V1` header) and
+ *                    `toleranceSeconds`. With `signatureV1` the tolerance is enforced on the
+ *                    signed send time (replay protection); without it, on the unsigned
+ *                    `timestamp` (staleness hint only). See {@link verifySignature}.
  * @throws {@link WebhookSignatureError} on invalid/missing signature.
- * @throws {@link WebhookTimestampError} if the delivery is too old.
+ * @throws {@link WebhookTimestampError} if the send time is outside the tolerance.
  *
  * @example
  * ```ts
@@ -60,7 +64,10 @@ export interface NodeLikeResponse {
  *
  * // Express (using express.raw({ type: "application/json" })):
  * app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
- *   const event = constructEvent(req.body, req.headers["x-racehooks-signature"], secret);
+ *   const event = constructEvent(req.body, req.headers["x-racehooks-signature"], secret, {
+ *     signatureV1: req.headers["x-racehooks-signature-v1"],
+ *     toleranceSeconds: 300,
+ *   });
  *   if (event.feed === "events.race") { ... }
  *   res.json({ received: true });
  * });
@@ -117,7 +124,10 @@ export function safeConstructEvent(
  *
  * @param secret    - Webhook signing secret.
  * @param handler   - Your event handler function.
- * @param options   - Optional default replay-protection settings.
+ * @param options   - Optional defaults (e.g. `toleranceSeconds`, `requireV1`). The handler reads
+ *                    `X-RaceHooks-Signature-V1` itself and, when present, enforces the tolerance
+ *                    on its signed send time; otherwise it falls back to the legacy body-only
+ *                    signature and the unsigned `X-RaceHooks-Sent-At` (staleness hint only).
  *
  * @example
  * ```ts
@@ -150,8 +160,12 @@ export function webhookHandler(
     }
 
     const signature = req.headers[SIGNATURE_HEADER];
+    const signatureV1 = headerValue(req.headers[SIGNATURE_V1_HEADER]);
     const timestamp = headerValue(req.headers[TIMESTAMP_HEADER]);
     const callOptions: VerifyOptions = { ...options };
+    // Prefer the timestamped v1 signature (tolerance on the signed send time); the legacy
+    // body-only signature + unsigned Sent-At are the fallback when v1 is absent.
+    if (signatureV1) callOptions.signatureV1 = signatureV1;
     if (timestamp) callOptions.timestamp = timestamp;
 
     let event: WebhookPayload;

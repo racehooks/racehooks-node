@@ -6,6 +6,8 @@
 import { createHmac } from "crypto";
 import {
   signPayload,
+  signPayloadV1,
+  SIGNATURE_V1_HEADER,
   verifySignature,
   verifySignatureBoolean,
   WebhookSignatureError,
@@ -453,5 +455,141 @@ describe("RaceHooks class — webhook helpers", () => {
     });
     const sig = serverSign(SECRET, WEATHER_BODY);
     expect(() => rh2.constructEvent(WEATHER_BODY, sig)).toThrow(WebhookSignatureError);
+  });
+});
+
+// ── v1 timestamped signature (RL-2072) ────────────────────────────────────────
+
+/** Reproduce server v1 signing: t=<ms>,v1=HMAC_SHA256(secret, `${t}.${body}`).hex */
+function serverSignV1(secret: string, body: string, t: number): string {
+  return `t=${t},v1=` + createHmac("sha256", secret).update(`${t}.${body}`).digest("hex");
+}
+
+describe("signPayloadV1", () => {
+  it("matches server v1 format for string and Buffer bodies", () => {
+    expect(signPayloadV1(SECRET, WEATHER_BODY, 1759400000123)).toBe(serverSignV1(SECRET, WEATHER_BODY, 1759400000123));
+    expect(signPayloadV1(SECRET, Buffer.from(WEATHER_BODY), 42)).toBe(serverSignV1(SECRET, WEATHER_BODY, 42));
+  });
+
+  it("SIGNATURE_V1_HEADER is lowercase", () => {
+    expect(SIGNATURE_V1_HEADER).toBe("x-racehooks-signature-v1");
+  });
+});
+
+describe("verifySignature — v1 signature", () => {
+  const legacy = () => serverSign(SECRET, WEATHER_BODY);
+
+  it("accepts a fresh v1 signature and enforces tolerance on the SIGNED t", () => {
+    const v1 = serverSignV1(SECRET, WEATHER_BODY, Date.now());
+    expect(verifySignature(WEATHER_BODY, legacy(), SECRET, { signatureV1: v1, toleranceSeconds: 300 })).toBe(true);
+  });
+
+  it("accepts the v1 value passed as the signature argument", () => {
+    const v1 = serverSignV1(SECRET, WEATHER_BODY, Date.now());
+    expect(verifySignature(WEATHER_BODY, v1, SECRET, { toleranceSeconds: 300 })).toBe(true);
+  });
+
+  it("rejects a replay: old signed t + fresh unsigned Sent-At still fails tolerance", () => {
+    const oldT = Date.now() - 10 * 60 * 1000;
+    const v1 = serverSignV1(SECRET, WEATHER_BODY, oldT);
+    expect(() =>
+      verifySignature(WEATHER_BODY, legacy(), SECRET, {
+        signatureV1: v1,
+        timestamp: Date.now(), // attacker-refreshed X-RaceHooks-Sent-At is ignored
+        toleranceSeconds: 300,
+      }),
+    ).toThrow(WebhookTimestampError);
+  });
+
+  it("rejects a v1 signature whose t was rewritten", () => {
+    const oldT = Date.now() - 10 * 60 * 1000;
+    const forged = serverSignV1(SECRET, WEATHER_BODY, oldT).replace(`t=${oldT}`, `t=${Date.now()}`);
+    expect(() =>
+      verifySignature(WEATHER_BODY, legacy(), SECRET, { signatureV1: forged, toleranceSeconds: 300 }),
+    ).toThrow(WebhookSignatureError);
+  });
+
+  it("rejects a v1 signature over a tampered body", () => {
+    const v1 = serverSignV1(SECRET, WEATHER_BODY, Date.now());
+    expect(() => verifySignature(RACE_EVENT_BODY, undefined, SECRET, { signatureV1: v1 })).toThrow(
+      WebhookSignatureError,
+    );
+  });
+
+  it("rejects a signed t too far in the future", () => {
+    const v1 = serverSignV1(SECRET, WEATHER_BODY, Date.now() + 10 * 60 * 1000);
+    expect(() => verifySignature(WEATHER_BODY, undefined, SECRET, { signatureV1: v1, toleranceSeconds: 300 })).toThrow(
+      WebhookTimestampError,
+    );
+  });
+
+  it("rejects a malformed v1 header", () => {
+    expect(() => verifySignature(WEATHER_BODY, undefined, SECRET, { signatureV1: "t=abc,v1=00" })).toThrow(
+      WebhookSignatureError,
+    );
+    expect(() => verifySignature(WEATHER_BODY, undefined, SECRET, { signatureV1: "t=123" })).toThrow(
+      WebhookSignatureError,
+    );
+  });
+
+  it("accepts when any one of several v1 values matches (rotation-ready)", () => {
+    const t = Date.now();
+    const good = serverSignV1(SECRET, WEATHER_BODY, t).split(",v1=")[1];
+    const header = `t=${t},v1=${"0".repeat(64)},v1=${good}`;
+    expect(verifySignature(WEATHER_BODY, undefined, SECRET, { signatureV1: header })).toBe(true);
+  });
+
+  it("falls back to the legacy signature when v1 is absent", () => {
+    expect(verifySignature(WEATHER_BODY, legacy(), SECRET)).toBe(true);
+  });
+
+  it("requireV1 rejects a legacy-only delivery (downgrade by stripping the v1 header)", () => {
+    expect(() => verifySignature(WEATHER_BODY, legacy(), SECRET, { requireV1: true })).toThrow(WebhookSignatureError);
+  });
+
+  it("verifySignatureBoolean / constructEvent / safeConstructEvent honour signatureV1", () => {
+    const fresh = serverSignV1(SECRET, WEATHER_BODY, Date.now());
+    const stale = serverSignV1(SECRET, WEATHER_BODY, Date.now() - 3_600_000);
+    const opts = (v1: string) => ({ signatureV1: v1, toleranceSeconds: 300 });
+    expect(verifySignatureBoolean(WEATHER_BODY, legacy(), SECRET, opts(fresh))).toBe(true);
+    expect(verifySignatureBoolean(WEATHER_BODY, legacy(), SECRET, opts(stale))).toBe(false);
+    expect(constructEvent(WEATHER_BODY, legacy(), SECRET, opts(fresh)).feed).toBe("weather.data");
+    expect(safeConstructEvent(WEATHER_BODY, legacy(), SECRET, opts(stale)).valid).toBe(false);
+  });
+});
+
+describe("webhookHandler — v1 signature", () => {
+  it("verifies the v1 header and ignores a refreshed Sent-At on a replay", async () => {
+    const oldT = Date.now() - 10 * 60 * 1000;
+    const { req, res } = makeReqRes(WEATHER_BODY, {
+      [SIGNATURE_HEADER]: serverSign(SECRET, WEATHER_BODY),
+      [SIGNATURE_V1_HEADER]: serverSignV1(SECRET, WEATHER_BODY, oldT),
+      [TIMESTAMP_HEADER]: String(Date.now()),
+    });
+    const mw = webhookHandler(SECRET, () => {}, { toleranceSeconds: 300 });
+    await mw(req, res);
+    expect(res._code).toBe(400);
+  });
+
+  it("accepts a fresh v1 delivery", async () => {
+    const t = Date.now();
+    const { req, res } = makeReqRes(WEATHER_BODY, {
+      [SIGNATURE_HEADER]: serverSign(SECRET, WEATHER_BODY),
+      [SIGNATURE_V1_HEADER]: serverSignV1(SECRET, WEATHER_BODY, t),
+      [TIMESTAMP_HEADER]: String(t),
+    });
+    const mw = webhookHandler(SECRET, () => {}, { toleranceSeconds: 300 });
+    await mw(req, res);
+    expect(res._code).toBe(200);
+  });
+
+  it("rejects a legacy-only delivery when requireV1 is set", async () => {
+    const { req, res } = makeReqRes(WEATHER_BODY, {
+      [SIGNATURE_HEADER]: serverSign(SECRET, WEATHER_BODY),
+      [TIMESTAMP_HEADER]: String(Date.now()),
+    });
+    const mw = webhookHandler(SECRET, () => {}, { requireV1: true });
+    await mw(req, res);
+    expect(res._code).toBe(400);
   });
 });

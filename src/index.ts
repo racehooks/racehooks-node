@@ -3,9 +3,11 @@ export {
   verifySignature,
   verifySignatureBoolean,
   signPayload,
+  signPayloadV1,
   WebhookSignatureError,
   WebhookTimestampError,
   SIGNATURE_HEADER,
+  SIGNATURE_V1_HEADER,
   TIMESTAMP_HEADER,
 } from "./verify.js";
 export {
@@ -14,6 +16,7 @@ export {
   webhookHandler,
 } from "./webhook-middleware.js";
 export { RaceHooksAuthError, RaceHooksAPIError } from "./auth.js";
+export type { UpdateWebhookPatch } from "./webhooks.js";
 
 // Re-export every payload/REST/data type from ./types. types.ts is the single
 // source of the public type surface — a wildcard keeps this in lockstep with it

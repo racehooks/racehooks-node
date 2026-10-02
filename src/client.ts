@@ -58,7 +58,10 @@ const DEFAULT_TIMEOUT_MS = 15_000;
  *
  * // In your webhook endpoint:
  * app.post("/hook", express.raw({ type: "application/json" }), (req, res) => {
- *   const event = rh.constructEvent(req.body, req.headers["x-racehooks-signature"]);
+ *   const event = rh.constructEvent(req.body, req.headers["x-racehooks-signature"], {
+ *     // Timestamped signature: toleranceSeconds is enforced on its SIGNED send time.
+ *     signatureV1: req.headers["x-racehooks-signature-v1"],
+ *   });
  *   if (event.feed === "events.race") { ... }
  *   res.json({ received: true });
  * });
@@ -105,10 +108,13 @@ export class RaceHooks {
   /**
    * Verify the raw webhook payload and parse it into a typed event.
    *
-   * Requires `secret` to have been passed to the constructor.
+   * Requires `secret` to have been passed to the constructor. Pass the
+   * `X-RaceHooks-Signature-V1` header as `options.signatureV1` so `toleranceSeconds`
+   * is enforced on the signed send time; without it, the legacy body-only signature is
+   * checked and the tolerance is only a staleness hint (see {@link verifySignature}).
    *
    * @throws {@link WebhookSignatureError} on invalid/missing signature.
-   * @throws {@link WebhookTimestampError} if the delivery is too old.
+   * @throws {@link WebhookTimestampError} if the send time is outside the tolerance.
    */
   constructEvent(
     payload: string | Buffer,
