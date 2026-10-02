@@ -33,12 +33,16 @@ export class UsageNamespace {
     tier: string;
     deliveryCount: number;
     failureCount: number;
-    dailyDeliveryLimit: number | "unlimited";
-    dailyRemaining: number | null;
+    monthlyDeliveryBucket: number | "unlimited";
+    bucketRemaining: number | null;
+    overageDeliveries: number;
+    overageSpendCents: number;
+    spendCapCents: number;
   }> {
     const res = await this.http.get<{ data: {
-      period: string; tier: string; deliveryCount: number;
-      failureCount: number; dailyDeliveryLimit: number | "unlimited"; dailyRemaining: number | null;
+      period: string; tier: string; deliveryCount: number; failureCount: number;
+      monthlyDeliveryBucket: number | "unlimited"; bucketRemaining: number | null;
+      overageDeliveries: number; overageSpendCents: number; spendCapCents: number;
     } }>("/usage");
     return res.data;
   }

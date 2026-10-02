@@ -1,6 +1,6 @@
 # racehooks
 
-Official Node.js/TypeScript SDK for [RaceHooks](https://racehooks.io) — the motorsports analytics platform. Subscribe to 50+ live F1 feeds with production ML models enriching every Analytics-tier payload, verify HMAC signatures, and query live and historical race data — all fully typed.
+Official Node.js/TypeScript SDK for [RaceHooks](https://racehooks.io) — the motorsports analytics platform. Subscribe to 50+ live F1 feeds with production ML models enriching every Custom-tier payload, verify HMAC signatures, and query live and historical race data — all fully typed.
 
 [![npm](https://img.shields.io/npm/v/racehooks)](https://www.npmjs.com/package/racehooks)
 [![Node.js ≥ 18](https://img.shields.io/node/v/racehooks)](https://nodejs.org)
@@ -128,9 +128,9 @@ Subscribe to [`feedId: "events.race"`](https://racehooks.io/docs/feeds/race-even
 | `fastest.lap` | New session fastest lap set |
 | `retirement` | Driver retires |
 
-## Analytics tier
+## Custom
 
-On the [Analytics tier](https://racehooks.io/pricing), RaceHooks delivers a suite of derived
+On [Custom](https://racehooks.io/pricing), RaceHooks delivers a suite of derived
 `analytics.*` and `weather.*` feeds, backed by production ML models and an algorithmic
 intelligence layer (CTMC win/podium probability with a full position distribution, ECP/ECPA,
 EKF tyre health). Each is an independently-subscribable feed with a fully-typed payload:
@@ -200,10 +200,12 @@ await rh.feeds.list();
 await rh.events.list();
 await rh.live.context();     // current drivers, positions, flag, RC messages
 
-// Simulate (replay historical sessions against your webhooks)
-const sim = await rh.simulate.start({ sessionId: "2026-bahrain_r", speed: 10 });
-await rh.simulate.get(sim.simulationId);
-await rh.simulate.cancel(sim.simulationId);
+// Simulate (replay a completed session as if it were live)
+await rh.simulate.sessions({ year: 2026 });        // list replayable sessions
+await rh.simulate.demo();                           // the curated demo session
+const art = await rh.simulate.prepare("2026-great-britain_r"); // warm the artifact
+await rh.simulate.status("2026-great-britain_r");   // { status: "ready" | "preparing" | ... }
+await rh.simulate.quota();                          // your tier's replay slots
 
 // Historical data
 await rh.data.listDrivers({ active: true });
@@ -218,7 +220,7 @@ await rh.insights.listRaces({ season: 2026 });
 await rh.insights.getRace("2026-bahrain-r1");
 await rh.insights.getModelMeta();
 
-// Telemetry (Live tier)
+// Telemetry (paid plan)
 await rh.telemetry.getRaceLaps("2026-bahrain-r1", { driverId: "max_verstappen" });
 await rh.telemetry.getRaceSummary("2026-bahrain-r1");
 
