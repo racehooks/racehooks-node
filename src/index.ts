@@ -31,5 +31,4 @@ export type {
   NodeLikeResponse,
 } from "./webhook-middleware.js";
 
-export type { StartSimulationOptions } from "./simulate.js";
 export type { UsageHistory, LatencyByFeedEntry } from "./usage.js";

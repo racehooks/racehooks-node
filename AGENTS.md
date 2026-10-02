@@ -92,17 +92,28 @@ await rh.webhooks.create({
 
 `rh.webhooks` (create/list/get/update/delete/test/logs/rotateSecret) · `rh.feeds.list()` ·
 `rh.events` · `rh.live.context()` (current drivers/positions/flag/RC) · `rh.simulate`
-(replay a historical session against your webhook — great for building/testing with no live
+(replay a current-season session against your webhook — great for building/testing with no live
 session) · `rh.data` (drivers, constructors, standings, races, quali, pits, tyres, laps,
 weather) · `rh.insights` (post-race ML) · `rh.telemetry` · `rh.fantasy` (race scores, pit
 times) · `rh.usage` (tier, limits, delivery counts).
 
 ## Building & testing without a live race
 
-Use **Simulate** — replay any historical session at chosen speed against your endpoint:
+Use **Simulate** — replay this season's sessions at chosen speed against your endpoint
+(the full historical archive is on Custom):
 
 ```ts
-const sim = await rh.simulate.start({ sessionId: "2026-bahrain_r", speed: 10 });
+// 1. Prepare on the main API; poll status() until "ready" (the demo race is always warm).
+const { sessionId } = await rh.simulate.demo();
+let art = await rh.simulate.prepare(sessionId);
+while (art.status === "preparing" || art.status === "missing") {
+  await new Promise((r) => setTimeout(r, 5000));
+  art = await rh.simulate.status(sessionId);
+}
+
+// 2. Play it into your active webhooks from the simulate host (token as a query param).
+const qs = new URLSearchParams({ session: sessionId, speed: "10", sinks: "webhook", token: TOKEN });
+await fetch(`https://simulate.racehooks.io/v1/simulate/stream?${qs}`);
 ```
 
 This is the recommended way to develop an integration between race weekends.

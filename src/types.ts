@@ -2,7 +2,7 @@
 // Shared types mirroring the RaceHooks API response shapes
 // ---------------------------------------------------------------------------
 
-export type SubscriptionTier = "free" | "live" | "analytics" | "enterprise";
+export type SubscriptionTier = "free" | "developer" | "live" | "analytics" | "enterprise";
 
 export interface WebhookFilters {
   drivers?: string[];
@@ -101,6 +101,7 @@ export interface DeliveryLog {
   createdAt: string;
 }
 
+/** @deprecated The per-request replay engine (`POST /v1/simulate`) was retired server-side. Use `rh.simulate` (sessions/prepare/status) and play back from simulate.racehooks.io. */
 export interface Simulation {
   simulationId: string;
   clientId: string;
@@ -118,20 +119,79 @@ export interface Simulation {
   completedAt: string | null;
 }
 
+/** A completed session that can be replayed (`GET /v1/simulate/sessions`). */
+export interface ReplayableSession {
+  /** Archive id, e.g. `2026-great-britain_r`. */
+  sessionId: string;
+  sessionName?: string;
+  eventId: string;
+  eventName: string;
+  /** Canonical circuit id, or null when unresolved. */
+  circuitId?: string | null;
+  year?: number;
+  /** Raw session type code, e.g. `r`, `q`, `ss`, `p1`. */
+  type?: string;
+  startDate?: string;
+  /** Replaying this session delivers the full Analytics feeds on any plan without using a replay slot. */
+  analyticsPreview?: boolean;
+}
+
+/** Recorded-playback artifact state for a session (`GET /v1/simulate/status`, `POST /v1/simulate/prepare`). */
+export interface SimulateArtifact {
+  /** Canonical session id. */
+  sessionId: string;
+  sessionName?: string;
+  modelVersion: string;
+  /** `lite` for self-serve tiers, `full` for analytics-grade tiers and the demo session. */
+  profile: "lite" | "full";
+  /**
+   * `ready` — stream it now. `preparing` — generation was triggered; poll `status()`.
+   * `missing` — real session with no artifact yet; call `prepare()`. `unknown` — no such session.
+   */
+  status: "ready" | "preparing" | "missing" | "unknown";
+  /** Served from a compatible prior format while the current one regenerates. */
+  formatFallback?: boolean;
+}
+
+/** Distinct-session replay-delivery quota (`GET /v1/simulate/quota`). Watching is unlimited. */
+export interface ReplayQuota {
+  /** Slot cap for the tier. -1 = unlimited. */
+  limit: number;
+  /** Distinct sessions delivered so far (lifetime). */
+  used: number;
+  /** Slots remaining. -1 = unlimited. */
+  remaining: number;
+  /** Session ids already unlocked — re-running them is free. */
+  unlocked: string[];
+  /** True when the tier may only replay the current season. */
+  currentSeasonOnly: boolean;
+}
+
 export interface SubscriptionData {
   tier: SubscriptionTier;
   active: boolean;
   limits: {
     maxWebhooks: number;
-    dailyDeliveryLimit: number | "unlimited";
+    /** Included deliveries per month, or "unlimited". */
+    monthlyDeliveryBucket: number | "unlimited";
+    /** Overage price in USD cents per 1,000 deliveries beyond the bucket. 0 = no overage. */
+    overageRatePer1kCents: number;
     hmacEnabled: boolean;
   };
   usage: {
     period: string;
     webhookCount: number;
     webhooksRemaining: number | null;
-    dailyDeliveries: number;
-    dailyRemaining: number | null;
+    /** Metered deliveries so far this month. */
+    monthlyDeliveries: number;
+    /** Included deliveries remaining this month, or null if unlimited. */
+    bucketRemaining: number | null;
+    /** Deliveries beyond the included bucket this month. */
+    overageDeliveries: number;
+    /** Overage spend so far this month, in USD cents. */
+    overageSpendCents: number;
+    /** Monthly overage spend cap in USD cents (0 = no overage). */
+    spendCapCents: number;
     failureCount: number;
   };
   upgrade?: {
@@ -1049,10 +1109,13 @@ export interface PitExitData {
   stopNumber: number;
   positionAfterPit: number;
 }
+export type RetirementCauseCategory = "accident" | "mechanical" | "puncture" | "unknown";
 export interface RetirementData {
   driver: DriverRef;
   positionAtRetirement: number;
   pitsCompleted: number;
+  cause: RetirementCauseCategory | null;
+  causeRawMessage: string | null;
 }
 export interface StrategySignalData {
   driver: DriverRef;
@@ -1246,6 +1309,24 @@ export interface StrategyCrossoverData {
   gapAtCrossoverSec: number;
 }
 
+export type MomentCategory = "flag" | "battle" | "pit" | "retirement" | "penalty";
+
+export interface MomentHighlightReelEntry {
+  /** The underlying events.race event name this moment was scored from, e.g. "retirement". */
+  event: string;
+  category: MomentCategory;
+  significance: number;
+  /** 1 = biggest moment of the session so far. */
+  rank: number;
+  lap: number;
+  utc: string;
+}
+
+export interface MomentHighlightReelData {
+  /** Ranked descending by significance, rank 1 first. Bounded to the top 10. */
+  moments: MomentHighlightReelEntry[];
+}
+
 type RaceEventPayloadBase = {
   feed: "events.race";
   sessionId: string | null;
@@ -1302,6 +1383,7 @@ export type RaceEventPayload =
   | (RaceEventPayloadBase & { event: "team.double.stop"; data: TeamDoubleStopData })
   | (RaceEventPayloadBase & { event: "battle.train.formed"; data: BattleTrainFormedData })
   | (RaceEventPayloadBase & { event: "strategy.crossover"; data: StrategyCrossoverData })
+  | (RaceEventPayloadBase & { event: "moment.highlight_reel"; data: MomentHighlightReelData })
   | (RaceEventPayloadBase & { event: string; data: Record<string, unknown> }); // open variant for forward compat
 
 /**
@@ -1357,7 +1439,8 @@ export type RaceEventType =
   | "race.completion.milestone"
   | "team.double.stop"
   | "battle.train.formed"
-  | "strategy.crossover";
+  | "strategy.crossover"
+  | "moment.highlight_reel";
 
 // ===========================================================================
 // events.qualifying — qualifying-specific synthetic events (feed: "events.qualifying")
@@ -1849,6 +1932,8 @@ export interface TierConfig {
   label: string;
   price: string;
   period: string;
+  annualPrice: string | null;
+  annualPeriod: string;
   description: string;
   idealFor: string;
   isBeta: boolean;
@@ -1856,33 +1941,46 @@ export interface TierConfig {
   supportLevel: string;
   liveFeeds: boolean;
   sla: string | null;
+  purchasable: boolean;
   maxWebhooks: number;
-  dailyDeliveryLimit: number;
+  maxFeedsPerEndpoint: number;
+  monthlyDeliveryBucket: number;
+  overageRatePer1kCents: number;
+  defaultSpendCapCents: number;
   hmacEnabled: boolean;
   apiRateLimitPerHour: number;
   dataPageSizeLimit: number;
-  simulateReplaysPerMonth: number;
+  /** Lifetime unique simulate sessions this tier can unlock (-1 = unlimited). */
+  simulateUniqueSessions: number;
+  /** "current-season" for self-serve tiers; "all" unlocks the full historical archive (Custom). */
+  simulateArchiveScope: "current-season" | "all";
   analyticsEnrichment: boolean;
-  maxSseConnections: number;
+  grpcEnabled: boolean;
 }
 
 export interface BillingPlan {
   tier: string;
-  openBeta: boolean;
+  active: boolean;
+  isBeta: boolean;
   stripePeriodEnd: string | null;
   analyticsEnrichment: boolean;
   limits: {
     maxWebhooks: number;
-    dailyDeliveryLimit: number | "unlimited";
+    monthlyDeliveryBucket: number | "unlimited";
+    overageRatePer1kCents: number;
     hmacEnabled: boolean;
     analyticsEnrichment: boolean;
   };
   usage: {
     period: string;
     webhookCount: number;
-    webhooksRemaining: number | null;
-    dailyDeliveries: number;
-    dailyRemaining: number | null;
+    /** Metered deliveries so far this month. */
+    monthlyDeliveries: number;
+    /** Included deliveries remaining this month, or null if unlimited. */
+    bucketRemaining: number | null;
+    overageDeliveries: number;
+    overageSpendCents: number;
+    spendCapCents: number;
     failureCount: number;
   };
 }
