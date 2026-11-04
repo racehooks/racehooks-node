@@ -210,35 +210,6 @@ export class DataNamespace {
     return res.data.laps;
   }
 
-  async getRaceSummary(raceId: string): Promise<Record<string, unknown>> {
-    const res = await this.http.get<{ data: Record<string, unknown> }>(`/data/races/${raceId}/summary`);
-    return res.data;
-  }
-
-  // Requires Bearer auth (live+ tier).
-  async getRaceTelemetryLaps(raceId: string, opts: { driverId?: string } = {}): Promise<Record<string, unknown>> {
-    const res = await this.http.get<{ data: Record<string, unknown> }>(
-      `/data/races/${raceId}/telemetry/laps${qs(opts)}`,
-    );
-    return res.data;
-  }
-
-  // Requires Bearer auth (analytics+ tier).
-  async getRaceTelemetryStints(raceId: string, opts: { driverId?: string } = {}): Promise<Record<string, unknown>> {
-    const res = await this.http.get<{ data: Record<string, unknown> }>(
-      `/data/races/${raceId}/telemetry/stints${qs(opts)}`,
-    );
-    return res.data;
-  }
-
-  // Requires Bearer auth (analytics+ tier).
-  async getRaceTelemetryAggression(raceId: string): Promise<Record<string, unknown>> {
-    const res = await this.http.get<{ data: Record<string, unknown> }>(
-      `/data/races/${raceId}/telemetry/aggression`,
-    );
-    return res.data;
-  }
-
   // Requires Bearer auth (live+ tier).
   async getSessionAnalytics(sessionId: string): Promise<Record<string, unknown>> {
     const res = await this.http.get<{ data: Record<string, unknown> }>(

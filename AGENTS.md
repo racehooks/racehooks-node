@@ -94,7 +94,7 @@ await rh.webhooks.create({
 `rh.events` · `rh.live.context()` (current drivers/positions/flag/RC) · `rh.simulate`
 (replay a current-season session against your webhook — great for building/testing with no live
 session) · `rh.data` (drivers, constructors, standings, races, quali, pits, tyres, laps,
-weather) · `rh.insights` (post-race ML) · `rh.telemetry` · `rh.fantasy` (race scores, pit
+weather) · `rh.insights` (post-race ML) · `rh.fantasy` (race scores, pit
 times) · `rh.usage` (tier, limits, delivery counts).
 
 ## Building & testing without a live race

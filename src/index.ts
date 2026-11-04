@@ -22,6 +22,7 @@ export type { UpdateWebhookPatch } from "./webhooks.js";
 // source of the public type surface — a wildcard keeps this in lockstep with it
 // (the previous hand-maintained allowlist drifted from the feed contracts).
 export type * from "./types.js";
+export { FEED_CATALOG, FEED_CATALOG_HASH } from "./feed-catalog.generated.js";
 
 export type {
   VerifyOptions,

@@ -40,7 +40,6 @@ import type {
   QualifyingEventPayload,
   QualifyingPolePositionData,
   // results
-  RaceSummaryPayload,
 } from "../types.js";
 
 const VER: DriverRef = {
@@ -301,29 +300,6 @@ describe("event feed payloads", () => {
   });
 });
 
-// ── results.race-summary (legacy `type` discriminator) ──────────────────────
-
-describe("RaceSummaryPayload", () => {
-  it("uses a `type` discriminator and full DriverRef metric holders", () => {
-    const summary: RaceSummaryPayload = {
-      type: "race.summary.complete",
-      raceId: "2026-bahrain-r1",
-      raceName: "Bahrain Grand Prix",
-      processedAt: "2026-03-16T16:30:00Z",
-      totalSamples: 1_200_000,
-      maxSpeedKph: 342.1,
-      maxSpeedDriver: VER,
-      avgThrottlePct: 61.2,
-      avgBrakePct: 18.4,
-      topAggressionDriver: NOR,
-      topAggressionScore: 0.91,
-      _links: { summary: "/v1/telemetry/2026-bahrain-r1", laps: "/v1/telemetry/2026-bahrain-r1/laps", stints: "/v1/telemetry/2026-bahrain-r1/stints", aggression: "/v1/telemetry/2026-bahrain-r1/aggression" },
-    };
-    expect(summary.type).toBe("race.summary.complete");
-    expect(summary.maxSpeedDriver?.tla).toBe("VER");
-  });
-});
-
 // ── generic envelope + FeedId ───────────────────────────────────────────────
 
 describe("WebhookPayload + FeedId", () => {
@@ -342,5 +318,22 @@ describe("WebhookPayload + FeedId", () => {
   it("FeedId includes the canonical hyphenated ids", () => {
     const ids: FeedId[] = ["events.race", "analytics.team-points", "weather.tire-mismatch", "timing.top-three"];
     expect(ids).toHaveLength(4);
+  });
+});
+
+// ── feed catalog (generated) ────────────────────────────────────────────────
+import { FEED_CATALOG } from "../index.js";
+import type { Feed, FeedAvailability } from "../index.js";
+
+describe("FEED_CATALOG", () => {
+  it("has unique ids and only catalog tiers", () => {
+    const ids = FEED_CATALOG.map((f) => f.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    const tiers: FeedAvailability[] = ["free", "live", "analytics", "lap"];
+    for (const f of FEED_CATALOG) expect(tiers).toContain(f.tier);
+  });
+  it("Feed.availability is a FeedAvailability", () => {
+    const f: Feed = { feedId: "weather.data", name: "Weather", path: "/x", availability: "free" };
+    expect(f.availability).toBe("free");
   });
 });

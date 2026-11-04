@@ -2,7 +2,10 @@
 // Shared types mirroring the RaceHooks API response shapes
 // ---------------------------------------------------------------------------
 
-export type SubscriptionTier = "free" | "developer" | "live" | "analytics" | "enterprise";
+/** The ACCOUNT plan (billing tier). Not the same as per-feed availability, see {@link FeedAvailability}. */
+export type AccountPlan = "free" | "developer" | "live" | "analytics" | "enterprise";
+/** @deprecated Renamed to {@link AccountPlan}. For per-feed availability use {@link FeedAvailability}. */
+export type SubscriptionTier = AccountPlan;
 
 export interface WebhookFilters {
   drivers?: string[];
@@ -24,7 +27,7 @@ export interface Webhook {
   webhookUrl: string;
   webhookMethod: "post" | "put";
   active: boolean;
-  subscriptionTier: SubscriptionTier;
+  subscriptionTier: AccountPlan;
   filters: WebhookFilters;
   consecutiveFailures: number;
   /** ISO timestamp when the subscription was auto-disabled after repeated failures, else null. */
@@ -39,7 +42,7 @@ export interface WebhookSubscription {
   seriesId: string;
   filters: WebhookFilters;
   active: boolean;
-  subscriptionTier: SubscriptionTier;
+  subscriptionTier: AccountPlan;
   consecutiveFailures: number;
   autoDisabledAt: string | null;
   createdAt: string;
@@ -66,7 +69,7 @@ export interface WebhookEndpoint {
   seriesId: string;
   /** True when at least one subscription on the endpoint is active. */
   active: boolean;
-  subscriptionTier: SubscriptionTier;
+  subscriptionTier: AccountPlan;
   feedCount: number;
   subscriptions: WebhookSubscription[];
   /** Only populated by `webhooks.get()`. */
@@ -79,7 +82,7 @@ export interface Feed {
   feedId: string;
   name: string;
   path: string;
-  availability: SubscriptionTier;
+  availability: FeedAvailability;
 }
 
 /**
@@ -168,7 +171,7 @@ export interface ReplayQuota {
 }
 
 export interface SubscriptionData {
-  tier: SubscriptionTier;
+  tier: AccountPlan;
   active: boolean;
   limits: {
     maxWebhooks: number;
@@ -1002,36 +1005,6 @@ export interface CompoundCrossoverPayload extends WeatherAlertEnvelope<"weather.
   estimatedLapsUntilAllOnSlick: number | null;
 }
 
-// ---------------------------------------------------------------------------
-// results.race-summary — post-race telemetry summary (once, after CarData)
-// NOTE: predates the standard `feed` envelope and carries a `type` discriminator.
-// ---------------------------------------------------------------------------
-
-export interface RaceSummaryLinks {
-  summary: string;
-  laps: string;
-  stints: string;
-  aggression: string;
-}
-
-export interface RaceSummaryPayload {
-  type: "race.summary.complete";
-  raceId: string;
-  raceName: string;
-  processedAt: string;
-  totalSamples: number;
-  maxSpeedKph: number | null;
-  /** Driver who set the race's top speed — full DriverRef, or null. */
-  maxSpeedDriver: DriverRef | null;
-  avgThrottlePct: number | null;
-  avgBrakePct: number | null;
-  /** Highest mean-aggression driver of the race — full DriverRef, or null. */
-  topAggressionDriver: DriverRef | null;
-  topAggressionScore: number | null;
-  /** RaceHooks REST links into the full telemetry detail. */
-  _links: RaceSummaryLinks;
-}
-
 // ===========================================================================
 // events.race — synthetic race events (feed: "events.race")
 // A discriminated union keyed on `event`. Every payload nests a full DriverRef.
@@ -1497,65 +1470,29 @@ export type QualifyingEventPayload =
 // Generic envelope + feed id catalog
 // ===========================================================================
 
-/**
- * The canonical set of RaceHooks feed ids (the `feedId` you pass to
- * `webhooks.create`, and the `feed` discriminator on delivered payloads).
- * Mirrors the server feed registry.
- */
-export type FeedId =
-  | "session.status"
-  | "session.track-status"
-  | "weather.data"
-  | "session.lap-count"
-  | "driver.list"
-  | "timing.data"
-  | "timing.stats"
-  | "timing.lap-history"
-  | "timing.driver-info"
-  | "tire.current"
-  | "tire.history"
-  | "tire.stints"
-  | "pit.lane-times"
-  | "pit.stops"
-  | "pit.stop-series"
-  | "session.clock"
-  | "weather.data-series"
-  | "race-control.messages"
-  | "session.info"
-  | "telemetry.position"
-  | "telemetry.car-data"
-  | "telemetry.driver-tracker"
-  | "telemetry.track-position"
-  | "standings.projection"
-  | "results.classification"
-  | "timing.top-three"
-  | "timing.mini-sectors"
-  | "events.race"
-  | "session.timing"
-  | "events.qualifying"
-  | "results.race-summary"
-  | "analytics.strategy"
-  | "analytics.race-odds"
-  | "analytics.true-pace"
-  | "analytics.gap-projection"
-  | "analytics.winning-margin"
-  | "analytics.race-preview"
-  | "analytics.race-duration"
-  | "analytics.tire-strategy"
-  | "analytics.team-points"
-  | "analytics.championship-probability"
-  | "analytics.qualifying"
-  | "analytics.sector-pace"
-  | "analytics.battle"
-  | "analytics.pit-window"
-  | "analytics.track-conditions"
-  | "analytics.pit-quality"
-  | "weather.rain-onset"
-  | "weather.rain-cleared"
-  | "weather.strategy-divergence"
-  | "weather.compound-crossover"
-  | "weather.forecast-update"
-  | "weather.tire-mismatch";
+import type { FeedAvailability } from "./feed-catalog.generated.js";
+export type { FeedId, FeedAvailability, FeedFamily, FeedCatalogEntry } from "./feed-catalog.generated.js";
+
+// ---------------------------------------------------------------------------
+// Feeds whose payload shape is not yet published in the feed catalog.
+// TODO: replace each `unknown` with a typed payload once contracts/feeds/catalog.json
+// carries a sample for the feed (sample is null for all seven today). No fields are
+// guessed; narrow these yourself, or discriminate on `WebhookPayload.feed`.
+// ---------------------------------------------------------------------------
+/** `fantasy.scores` payload. TODO: untyped until the catalog publishes a sample. */
+export type FantasyScoresPayload = unknown;
+/** `lite.race-odds` payload. TODO: untyped until the catalog publishes a sample. */
+export type LiteRaceOddsPayload = unknown;
+/** `radio.transcript` payload. TODO: untyped until the catalog publishes a sample. */
+export type RadioTranscriptPayload = unknown;
+/** `strategy.recommendation` payload. TODO: untyped until the catalog publishes a sample. */
+export type StrategyRecommendationPayload = unknown;
+/** `race.grid-penalty` payload. TODO: untyped until the catalog publishes a sample. */
+export type GridPenaltyPayload = unknown;
+/** `regulatory.stewards-decision` payload. TODO: untyped until the catalog publishes a sample. */
+export type StewardsDecisionPayload = unknown;
+/** `analytics.ml-result` payload. TODO: untyped until the catalog publishes a sample. */
+export type MlResultPayload = unknown;
 
 /**
  * Generic webhook payload envelope. Every delivery is
@@ -1621,7 +1558,7 @@ export interface CreateWebhookResult {
   webhook: Webhook;
   /** Signing secret — returned once, at creation. */
   webhookSecret?: string;
-  tier: SubscriptionTier;
+  tier: AccountPlan;
 }
 
 /** Response to the `feedIds` / `subscriptions` create forms (one endpoint, many feeds). */
@@ -1632,7 +1569,7 @@ export interface CreateWebhookEndpointResult {
   subscriptions: WebhookSubscription[];
   /** Signing secret — returned once, at creation. Absent on an Idempotency-Key replay. */
   webhookSecret?: string;
-  tier: SubscriptionTier;
+  tier: AccountPlan;
   /** True when the server answered from an earlier request with the same Idempotency-Key. */
   replayed?: boolean;
 }
@@ -1857,36 +1794,6 @@ export interface ModelMetaEntry {
   trainRows: number | null;
   trainedAt: string;
   notes: string | null;
-}
-
-// ---------------------------------------------------------------------------
-// Telemetry API types (/v1/telemetry/*)
-// ---------------------------------------------------------------------------
-
-export interface LapTelemetryEntry {
-  lapNumber: number;
-  driverId: string;
-  avgSpeedKph: number | null;
-  maxSpeedKph: number | null;
-  avgThrottlePct: number | null;
-  fullThrottlePct: number | null;
-  brakePct: number | null;
-  topGear: number | null;
-  drsPct: number | null;
-  aggressionIdx: number | null;
-  sampleCount: number;
-}
-
-export interface TelemetrySummary {
-  status: string;
-  processedAt: string | null;
-  totalSamples: number | null;
-  maxSpeedKph: number | null;
-  maxSpeedDriver: string | null;
-  avgThrottlePct: number | null;
-  avgBrakePct: number | null;
-  topAggressionDriver: string | null;
-  topAggressionScore: number | null;
 }
 
 // ---------------------------------------------------------------------------

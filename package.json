@@ -29,6 +29,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "gen:feed-catalog": "node scripts/gen-feed-catalog.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage",

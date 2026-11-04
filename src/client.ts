@@ -7,7 +7,6 @@ import { EventsNamespace, LiveNamespace } from "./events.js";
 import { UsageNamespace } from "./usage.js";
 import { DataNamespace } from "./data.js";
 import { InsightsNamespace } from "./insights.js";
-import { TelemetryNamespace } from "./telemetry.js";
 import { FantasyNamespace } from "./fantasy.js";
 import type { RaceHooksConfig } from "./types.js";
 import {
@@ -76,7 +75,6 @@ export class RaceHooks {
   readonly usage: UsageNamespace;
   readonly data: DataNamespace;
   readonly insights: InsightsNamespace;
-  readonly telemetry: TelemetryNamespace;
   readonly fantasy: FantasyNamespace;
 
   private readonly http: HttpClient;
@@ -98,7 +96,6 @@ export class RaceHooks {
     this.usage     = new UsageNamespace(this.http);
     this.data      = new DataNamespace(this.http);
     this.insights  = new InsightsNamespace(this.http);
-    this.telemetry = new TelemetryNamespace(this.http);
     this.fantasy   = new FantasyNamespace(this.http);
 
     this._secret = config.secret;

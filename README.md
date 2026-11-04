@@ -220,10 +220,6 @@ await rh.insights.listRaces({ season: 2026 });
 await rh.insights.getRace("2026-bahrain-r1");
 await rh.insights.getModelMeta();
 
-// Telemetry (paid plan)
-await rh.telemetry.getRaceLaps("2026-bahrain-r1", { driverId: "max_verstappen" });
-await rh.telemetry.getRaceSummary("2026-bahrain-r1");
-
 // Fantasy scoring (paid plan)
 await rh.fantasy.getRaceScores("2026-bahrain-r1");                     // Grand Prix points
 await rh.fantasy.getRaceScores("2026-bahrain-r1", { session: "sprint" }); // Sprint points
