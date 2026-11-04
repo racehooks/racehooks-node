@@ -1,0 +1,1000 @@
+{
+  "schema": "racehooks.feed-catalog/1",
+  "contentHash": "e573a0c1b84e09386053de7d77b5edca38fab0bd2ac8aba5afe48f476cd1daf9",
+  "families": [
+    {
+      "category": "analytics",
+      "slug": "analytics",
+      "label": "Models & Predictions",
+      "desc": "ML model outputs, per driver",
+      "order": 1
+    },
+    {
+      "category": "timing",
+      "slug": "timing",
+      "label": "Timing & Laps",
+      "desc": "Lap times, sectors, gaps, positions",
+      "order": 2
+    },
+    {
+      "category": "strategy",
+      "slug": "strategy",
+      "label": "Strategy & Tyres",
+      "desc": "Tyre stints, pit times, compounds",
+      "order": 3
+    },
+    {
+      "category": "race-control",
+      "slug": "race-control",
+      "label": "Race Control",
+      "desc": "FIA messages, flags, team radio",
+      "order": 4
+    },
+    {
+      "category": "race-events",
+      "slug": "race-events",
+      "label": "Race Events",
+      "desc": "Computed events, session timing, qualifying",
+      "order": 5
+    },
+    {
+      "category": "results",
+      "slug": "results",
+      "label": "Results & Standings",
+      "desc": "Classified results and championship projections",
+      "order": 6
+    },
+    {
+      "category": "weather",
+      "slug": "weather",
+      "label": "Weather",
+      "desc": "Conditions and predictive alerts",
+      "order": 7
+    },
+    {
+      "category": "telemetry",
+      "slug": "telemetry",
+      "label": "Telemetry",
+      "desc": "Live position and driver tracking",
+      "order": 8
+    },
+    {
+      "category": "core",
+      "slug": "session-core",
+      "label": "Session & Core",
+      "desc": "Status, clock, lap count, drivers",
+      "order": 9
+    }
+  ],
+  "feeds": [
+    {
+      "feedId": "analytics.strategy",
+      "name": "Race Strategy Analytics",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Per-driver decision surfaces: pit (probability, window, plan, call), threat (undercut/overcut/overtake), pace (LTOE, clean pace, tyre health), reliability (DNF risk); plus session-level raceState (safety car probability, strategy leverage, pit-cycle openness T(L)).",
+      "cadence": "Per lap",
+      "sessionContext": "Race, Sprint",
+      "sample": {
+        "payload": {
+          "feed": "analytics.strategy",
+          "sessionId": "2026-canada_r",
+          "lap": 18,
+          "drivers": [
+            {
+              "number": "12",
+              "tla": "ANT",
+              "pit": {
+                "pNextLap": 0.09,
+                "pWithin3Laps": 0.248
+              }
+            }
+          ]
+        },
+        "source": {
+          "kind": "production-export",
+          "session": "2026-canada_r",
+          "utc": null,
+          "note": "recorded production pit-model output for lap 18 (company/marketing/evidence/export_canada_tiles.py), one driver row"
+        }
+      }
+    },
+    {
+      "feedId": "strategy.recommendation",
+      "name": "Strategy Recommendation",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Prescriptive counterfactual strategy ranking for the front-runners: candidate pit-and-compound schedules simulated under common random numbers and ranked by outcome distribution — P(win), P(podium), expected finish, expected championship points, p10–p90 robustness spread — with the emergent-strategy baseline for honest comparison.",
+      "cadence": "Per lap",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.race-odds",
+      "name": "Race Outcome Probabilities",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Monte Carlo position distribution, podium/points odds, expected points, fastest-lap probability, H2H vs teammate, and same-team pairs — plus, during the opening laps, the glass-box combined win-prob line (model prior pooled with the pre-race market line) that anchors the early race.",
+      "cadence": "Per lap",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "lite.race-odds",
+      "name": "In-race Chances",
+      "family": "analytics",
+      "tier": "lap",
+      "shortDesc": "In-race win, podium and points chance for every driver plus safety-car chance for the rest of the race, rounded to 5% and released one lap behind (Developer Live+).",
+      "cadence": "Per lap, one lap behind",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.true-pace",
+      "name": "True Pace Ranking",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Who's genuinely fastest: each car's session pace stripped of fuel load, tyre age, and traffic (dirty air), ranked — the public-data proxy for hidden long-run pace.",
+      "cadence": "Per lap",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.gap-projection",
+      "name": "Gap to Leader Projection",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Projected gap to the race leader at race end for every driver: five percentile bands (p10–p90) plus P(lapped) from Monte Carlo simulation.",
+      "cadence": "Per lap",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.winning-margin",
+      "name": "Winning Margin Projection",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Session-level race outlook: projected winning margin (P1–P2) with percentile bands, the probability the margin lands above 5s / 10s / below 3s, and the safety-car collapse risk that resets the lead.",
+      "cadence": "Per lap",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.race-preview",
+      "name": "Pre-Race Preview",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Pre-race projections in two stages: post-final-practice (long-run pace ranking, circuit strategy priors, weather outlook) and post-qualifying (classification with measured pole margin, pace-vs-grid deltas, derived race distance, pre-race pit-stop-count distributions, and — when a market line is available — the glass-box combined win-prob line pooling the model prior with the market).",
+      "cadence": "Twice per race weekend (post-final-practice, post-qualifying)",
+      "sessionContext": "Practice, Qualifying",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.ml-result",
+      "name": "ML Results",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Every ML model result as its own update the moment it lands: per model stream, ordered and gapless, with the per-driver predictions exactly as the inference server returned them (no coalescing).",
+      "cadence": "Per inference result (about every 1-2 s in a race, per model stream)",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.race-duration",
+      "name": "Race Duration Projection",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Projected total race time with p10/p90 bands, expected winner lap time, red-flag probability, and P(race exceeds the 2-hour FIA limit).",
+      "cadence": "Per lap",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.tire-strategy",
+      "name": "Tyre Strategy Probability",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Next-compound probabilities for drivers approaching a pit window (pitStopProbabilityNext3Laps > 0.25 — the within-3 scale, not the per-lap pitStopProbability). Sparse — fires only when relevant.",
+      "cadence": "Per pit approach",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.team-points",
+      "name": "Team Points Analytics",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Constructor-level expected points from discrete joint position-distribution convolution, with P(both drivers score) and full points distribution.",
+      "cadence": "Per lap",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.championship-probability",
+      "name": "Championship Win Probability",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Post-race championship win probability for every driver (WDC) and constructor (WCC). afterRaceId identifies which race the data reflects.",
+      "cadence": "Once, post-race",
+      "sessionContext": "Season",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.qualifying",
+      "name": "Qualifying Analytics",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Per-sector fastest probabilities and per-driver pace deltas during qualifying, with pole-margin probability. Fires after each personal best.",
+      "cadence": "Per lap improvement",
+      "sessionContext": "Qualifying",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.sector-pace",
+      "name": "Sector Pace Analytics",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Per-sector pace deltas with anomaly detection; fires when a sector-pace anomaly is detected.",
+      "cadence": "On sector anomaly",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.battle",
+      "name": "Strategy Battle Alert",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "On-track battle status between a driver and the car directly ahead (closing, holding, defending).",
+      "cadence": "On battle state change",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.pit-window",
+      "name": "Pit Window Alert",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Pit-window status (OPEN / URGENT) combining pit probability, undercut viability, tyre cliff risk, and gap context.",
+      "cadence": "On window open/urgent",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.track-conditions",
+      "name": "Track Conditions Analytics",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Track evolution and grip-condition analytics derived from field pace trends.",
+      "cadence": "Per lap",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "analytics.pit-quality",
+      "name": "Pit Quality Alert",
+      "family": "analytics",
+      "tier": "analytics",
+      "shortDesc": "Pit-stop execution quality assessment (stationary time vs. expected) after a stop completes.",
+      "cadence": "On pit completion",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "timing.data",
+      "name": "Live Timing",
+      "family": "timing",
+      "tier": "live",
+      "shortDesc": "Per-driver position, gaps (leader + interval), lap/sector times, speed traps, pit status.",
+      "sample": {
+        "payload": {
+          "feed": "timing.data",
+          "sessionId": "2026-canada_r",
+          "utc": "2026-10-05T18:21:14.005Z",
+          "drivers": [
+            {
+              "driverId": "norris-lando",
+              "constructorId": "mclaren",
+              "number": "1",
+              "tla": "NOR",
+              "name": "Lando Norris",
+              "team": "McLaren",
+              "gapToLeader": {
+                "display": "+29.517",
+                "seconds": 29.517
+              },
+              "lastLapTime": {
+                "display": "1:18.079",
+                "ms": 78079
+              },
+              "bestLapTime": {
+                "display": "1:18.079",
+                "ms": 78079
+              },
+              "sectors": [
+                null,
+                null,
+                {
+                  "display": "30.774",
+                  "ms": 30774
+                }
+              ],
+              "speeds": {
+                "fl": 293
+              }
+            },
+            {
+              "driverId": "hadjar-isack",
+              "constructorId": "red-bull-racing",
+              "number": "6",
+              "tla": "HAD",
+              "name": "Isack Hadjar",
+              "team": "Red Bull Racing",
+              "gapToLeader": {
+                "display": "+7.292",
+                "seconds": 7.292
+              },
+              "lastLapTime": null,
+              "sectors": [
+                {
+                  "display": "21.828",
+                  "ms": 21828
+                },
+                null,
+                null
+              ],
+              "speeds": {
+                "i1": 240
+              }
+            },
+            {
+              "driverId": "leclerc-charles",
+              "constructorId": "ferrari",
+              "number": "16",
+              "tla": "LEC",
+              "name": "Charles Leclerc",
+              "team": "Ferrari",
+              "gapToLeader": {
+                "display": "+5.314",
+                "seconds": 5.314
+              },
+              "lastLapTime": null,
+              "sectors": [
+                null,
+                null,
+                null
+              ]
+            }
+          ]
+        },
+        "source": {
+          "kind": "capture-normalised",
+          "session": "2026-canada_r",
+          "utc": "2026-10-05T18:21:14.005Z",
+          "note": "recorded frame; driver identity fields completed from the driver registry, timing.data trimmed to 3 rows"
+        }
+      }
+    },
+    {
+      "feedId": "timing.stats",
+      "name": "Timing Stats",
+      "family": "timing",
+      "tier": "live",
+      "shortDesc": "Personal best lap, best sectors, speed trap rankings.",
+      "sample": null
+    },
+    {
+      "feedId": "timing.lap-history",
+      "name": "Lap History",
+      "family": "timing",
+      "tier": "live",
+      "shortDesc": "Accumulated per-driver lap data series.",
+      "sample": null
+    },
+    {
+      "feedId": "timing.top-three",
+      "name": "Top Three",
+      "family": "timing",
+      "tier": "live",
+      "shortDesc": "Simplified live leaderboard for the top three cars — position, driver, lap time, and gap. Zero-dependency feed for tickers and score overlays.",
+      "sample": null
+    },
+    {
+      "feedId": "timing.mini-sectors",
+      "name": "Mini-Sector Timing",
+      "family": "timing",
+      "tier": "analytics",
+      "shortDesc": "High-granularity timing companion: mini-sector progress ticks, speed-trap readings (I1, I2, FL, ST), and live pit/retirement flags.",
+      "sample": null
+    },
+    {
+      "feedId": "tire.current",
+      "name": "Current Tyres",
+      "family": "strategy",
+      "tier": "live",
+      "shortDesc": "Current compound per driver with age and new-set flag.",
+      "sample": null
+    },
+    {
+      "feedId": "tire.history",
+      "name": "Tyre History",
+      "family": "strategy",
+      "tier": "live",
+      "shortDesc": "Full stint history: compound, start lap, laps on tyre.",
+      "sample": null
+    },
+    {
+      "feedId": "tire.stints",
+      "name": "Stint Data",
+      "family": "strategy",
+      "tier": "live",
+      "shortDesc": "Each driver's complete stint list: compound, new set, tyre age, laps, best lap; plus grid slot.",
+      "sample": null
+    },
+    {
+      "feedId": "pit.lane-times",
+      "name": "Pit Lane Times",
+      "family": "strategy",
+      "tier": "live",
+      "shortDesc": "Pit stop durations in milliseconds with pit-in/out laps.",
+      "sample": null
+    },
+    {
+      "feedId": "pit.stops",
+      "name": "Pit Stop",
+      "family": "strategy",
+      "tier": "live",
+      "shortDesc": "Official F1 single pit-stop record (authoritative, arrives after the live stop).",
+      "sample": {
+        "payload": {
+          "feed": "pit.stops",
+          "sessionId": "2026-canada_r",
+          "utc": "2026-10-05T18:51:14.806Z",
+          "data": {
+            "driver": {
+              "driverId": "colapinto-franco",
+              "constructorId": "alpine",
+              "number": "43",
+              "tla": "COL",
+              "name": "Franco Colapinto",
+              "team": "Alpine"
+            },
+            "lap": 30,
+            "pitStopTimeMs": 3800,
+            "pitLaneTimeMs": 25640
+          }
+        },
+        "source": {
+          "kind": "capture-normalised",
+          "session": "2026-canada_r",
+          "utc": "2026-10-05T18:51:14.806Z",
+          "note": "recorded frame; driver identity fields completed from the driver registry, timing.data trimmed to 3 rows"
+        }
+      }
+    },
+    {
+      "feedId": "pit.stop-series",
+      "name": "Pit Stop Series",
+      "family": "strategy",
+      "tier": "live",
+      "shortDesc": "Full pit-stop history per driver.",
+      "sample": null
+    },
+    {
+      "feedId": "session.track-status",
+      "name": "Track Status",
+      "family": "race-control",
+      "tier": "free",
+      "shortDesc": "Track flag code: 1=Clear, 2=Yellow, 4=SC, 5=Red, 6=VSC, 7=VSC Ending.",
+      "sample": {
+        "payload": {
+          "feed": "session.track-status",
+          "sessionId": "2026-canada_r",
+          "utc": "2026-10-05T18:49:34.525Z",
+          "data": {
+            "status": "yellow",
+            "message": "Yellow"
+          }
+        },
+        "source": {
+          "kind": "capture",
+          "session": "2026-canada_r",
+          "utc": "2026-10-05T18:49:34.525Z",
+          "capture": "sc",
+          "seq": 47632
+        }
+      }
+    },
+    {
+      "feedId": "race-control.messages",
+      "name": "Race Control Messages",
+      "family": "race-control",
+      "tier": "live",
+      "shortDesc": "Raw FIA race control messages: safety car, VSC, red flag, penalties, investigations.",
+      "sample": {
+        "payload": {
+          "feed": "race-control.messages",
+          "sessionId": "2026-canada_r",
+          "utc": "2026-10-05T18:48:39.015Z",
+          "data": {
+            "messages": [
+              {
+                "utc": "2026-05-24T20:46:58",
+                "category": "Flag",
+                "message": "WAVED BLUE FLAG FOR CAR 18 (STR) TIMED AT 16:46:58",
+                "flag": "BLUE",
+                "lap": 29,
+                "scope": "Driver"
+              }
+            ]
+          }
+        },
+        "source": {
+          "kind": "capture",
+          "session": "2026-canada_r",
+          "utc": "2026-10-05T18:48:39.015Z",
+          "capture": "sc",
+          "seq": 46669
+        }
+      }
+    },
+    {
+      "feedId": "radio.transcript",
+      "name": "Team Radio Transcript",
+      "family": "race-control",
+      "tier": "analytics",
+      "shortDesc": "Team radio speech, transcribed: what the driver and pit wall actually said, with a confidence score.",
+      "cadence": "per radio clip, seconds after the broadcast",
+      "sample": null
+    },
+    {
+      "feedId": "regulatory.stewards-decision",
+      "name": "Stewards Decisions",
+      "family": "race-control",
+      "tier": "live",
+      "shortDesc": "Parsed FIA stewards decisions: penalty type, driver, session, infringement, grid places / seconds / fine, raw decision text.",
+      "cadence": "on publication (FIA decision documents, ~3 min poll)",
+      "sample": null
+    },
+    {
+      "feedId": "race.grid-penalty",
+      "name": "Grid Penalties",
+      "family": "race-control",
+      "tier": "live",
+      "shortDesc": "Grid-affecting stewards decisions only (grid drop, back of grid, pit-lane start), with the number of grid places.",
+      "cadence": "on publication (FIA decision documents, ~3 min poll)",
+      "sample": null
+    },
+    {
+      "feedId": "events.race",
+      "name": "Race Events",
+      "family": "race-events",
+      "tier": "live",
+      "shortDesc": "RaceHooks-computed synthetic events: overtakes, pit stops, safety cars, fastest laps, retirements, penalties, and more (40+ event types).",
+      "cadence": "On state transition",
+      "sample": {
+        "payload": {
+          "feed": "events.race",
+          "sessionId": "2026-canada_r",
+          "event": "overtake",
+          "lap": 30,
+          "utc": "2026-10-05T18:49:20.412Z",
+          "data": {
+            "overtakingDriver": {
+              "driverId": "antonelli-kimi",
+              "constructorId": "mercedes",
+              "number": "12",
+              "tla": "ANT",
+              "name": "Kimi Antonelli",
+              "team": "Mercedes",
+              "newPosition": 1,
+              "prevPosition": 2
+            },
+            "overtakenDriver": {
+              "driverId": "russell-george",
+              "constructorId": "mercedes",
+              "number": "63",
+              "tla": "RUS",
+              "name": "George Russell",
+              "team": "Mercedes",
+              "newPosition": 2,
+              "prevPosition": 1
+            }
+          }
+        },
+        "source": {
+          "kind": "capture-normalised",
+          "session": "2026-canada_r",
+          "utc": "2026-10-05T18:49:20.412Z",
+          "note": "recorded overtake event (docsDemoFixture DEMO_RACE_EVENTS); driver identity fields completed from the driver registry"
+        }
+      }
+    },
+    {
+      "feedId": "session.timing",
+      "name": "Session Timing Milestones",
+      "family": "race-events",
+      "tier": "live",
+      "shortDesc": "Aggregated session timing state: flag, lap, clock, qualifying segment, resume time.",
+      "cadence": "On timing-relevant state change",
+      "sample": {
+        "payload": {
+          "feed": "session.timing",
+          "sessionId": "2026-canada_r",
+          "utc": "2026-10-05T18:48:39.843Z",
+          "state": "racing",
+          "flag": "green",
+          "lap": 30,
+          "totalLaps": 68,
+          "sessionType": "Race",
+          "clock": {
+            "remaining": "01:59:59",
+            "extrapolating": true,
+            "utc": "2026-05-24T20:09:48.004Z"
+          },
+          "resumeAt": null,
+          "resumeAtUtc": null,
+          "qualifyingSegment": null
+        },
+        "source": {
+          "kind": "capture",
+          "session": "2026-canada_r",
+          "utc": "2026-10-05T18:48:39.843Z",
+          "capture": "sc",
+          "seq": 46684
+        }
+      }
+    },
+    {
+      "feedId": "events.qualifying",
+      "name": "Qualifying Events",
+      "family": "race-events",
+      "tier": "live",
+      "shortDesc": "Qualifying-specific synthetic events: lap improvements, eliminations, pole position, front row, session complete.",
+      "cadence": "On qualifying state change",
+      "sessionContext": "Qualifying",
+      "sample": null
+    },
+    {
+      "feedId": "fantasy.scores",
+      "name": "Fantasy Scores",
+      "family": "race-events",
+      "tier": "live",
+      "shortDesc": "Provisional fantasy points per driver with the full component breakdown, pushed when a score changes. Same computation as the fantasy REST routes.",
+      "cadence": "On scoring change",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "standings.projection",
+      "name": "Live Championship Projection",
+      "family": "results",
+      "tier": "analytics",
+      "shortDesc": "Live championship points simulation: projected standings if the current race order holds.",
+      "sample": null
+    },
+    {
+      "feedId": "results.classification",
+      "name": "Classified Results",
+      "family": "results",
+      "tier": "analytics",
+      "shortDesc": "Post-race classified positions (fires once after race end).",
+      "sample": null
+    },
+    {
+      "feedId": "weather.data",
+      "name": "Weather Data",
+      "family": "weather",
+      "tier": "free",
+      "shortDesc": "Air/track temp, humidity, pressure, wind, rainfall.",
+      "sample": {
+        "payload": {
+          "feed": "weather.data",
+          "sessionId": "2026-canada_r",
+          "utc": "2026-10-05T18:48:27.593Z",
+          "data": {
+            "airTempC": 13.4,
+            "trackTempC": 18.1,
+            "humidity": 67.5,
+            "pressure": 1024,
+            "windSpeed": 4.5,
+            "windDirection": 188,
+            "rainfall": false
+          }
+        },
+        "source": {
+          "kind": "capture",
+          "session": "2026-canada_r",
+          "utc": "2026-10-05T18:48:27.593Z",
+          "capture": "sc",
+          "seq": 46478
+        }
+      }
+    },
+    {
+      "feedId": "weather.data-series",
+      "name": "Weather Data Series",
+      "family": "weather",
+      "tier": "live",
+      "shortDesc": "Time-series history of weather data.",
+      "sample": null
+    },
+    {
+      "feedId": "weather.rain-onset",
+      "name": "Rain Onset",
+      "family": "weather",
+      "tier": "live",
+      "shortDesc": "Fires when rainfall begins at the circuit.",
+      "cadence": "On rain start",
+      "sample": null
+    },
+    {
+      "feedId": "weather.rain-cleared",
+      "name": "Rain Cleared",
+      "family": "weather",
+      "tier": "live",
+      "shortDesc": "Fires when rainfall stops at the circuit.",
+      "cadence": "On rain stop",
+      "sample": null
+    },
+    {
+      "feedId": "weather.strategy-divergence",
+      "name": "Weather Strategy Divergence",
+      "family": "weather",
+      "tier": "analytics",
+      "shortDesc": "Fires during active rain when the field splits between wet and dry compound strategies.",
+      "cadence": "During rain",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "weather.compound-crossover",
+      "name": "Compound Crossover Alert",
+      "family": "weather",
+      "tier": "analytics",
+      "shortDesc": "Fires when forecast conditions cross the threshold where a different compound becomes optimal.",
+      "cadence": "On crossover",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "weather.forecast-update",
+      "name": "Weather Forecast Update",
+      "family": "weather",
+      "tier": "analytics",
+      "shortDesc": "Fires when precipitation forecast changes by more than 0.5 mm/hr.",
+      "cadence": "On forecast change",
+      "sample": null
+    },
+    {
+      "feedId": "weather.tire-mismatch",
+      "name": "Tyre Mismatch Alert",
+      "family": "weather",
+      "tier": "analytics",
+      "shortDesc": "Per-driver alert when a car is on slicks with rain falling or imminent — the wrong tyre for the conditions.",
+      "cadence": "On wet-tyre mismatch",
+      "sessionContext": "Race, Sprint",
+      "sample": null
+    },
+    {
+      "feedId": "telemetry.driver-tracker",
+      "name": "Driver Tracker",
+      "family": "telemetry",
+      "tier": "live",
+      "shortDesc": "Low-resolution live position (x/y/z).",
+      "sample": null
+    },
+    {
+      "feedId": "telemetry.track-position",
+      "name": "Virtual Track Position",
+      "family": "telemetry",
+      "tier": "live",
+      "shortDesc": "Every car's live position on the circuit — lap fraction plus x/y track coordinates — reconstructed each second from timing.",
+      "cadence": "~1/sec",
+      "sample": {
+        "payload": {
+          "feed": "telemetry.track-position",
+          "sessionId": "2026-canada_r",
+          "lap": 29,
+          "utc": "2026-10-05T18:48:29.984Z",
+          "estimates": [
+            {
+              "driver": "1",
+              "lap": 28,
+              "arc": 3415.9225076124335,
+              "lapFraction": 0.7832888116515555,
+              "x": 163.35373540548088,
+              "y": 1007.3523059663565,
+              "v": 89.27185775464518,
+              "stdM": 25,
+              "regime": "track",
+              "ageMs": 0
+            },
+            {
+              "driver": "3",
+              "lap": 29,
+              "arc": 3102.9423574228254,
+              "lapFraction": 0.7115208340799875,
+              "x": 79.11032229002551,
+              "y": 1310.7302642025743,
+              "v": 87.34141667585854,
+              "stdM": 25,
+              "regime": "track",
+              "ageMs": 0
+            },
+            {
+              "driver": "5",
+              "lap": 28,
+              "arc": 1173.9516315859835,
+              "lapFraction": 0.26919321980875566,
+              "x": -92.57296325412047,
+              "y": 344.01358097584034,
+              "v": 41.81418690725663,
+              "stdM": 25,
+              "regime": "track",
+              "ageMs": 0
+            }
+          ]
+        },
+        "source": {
+          "kind": "capture",
+          "session": "2026-canada_r",
+          "utc": "2026-10-05T18:48:29.984Z",
+          "capture": "sc",
+          "seq": 46525,
+          "note": "trimmed to the first 3 of the frame's car estimates"
+        }
+      }
+    },
+    {
+      "feedId": "session.status",
+      "name": "Session Status",
+      "family": "core",
+      "tier": "free",
+      "shortDesc": "Session lifecycle: Started, Aborted, Finished, Finalised, Ends.",
+      "sample": {
+        "payload": {
+          "feed": "session.status",
+          "sessionId": "2026-canada_r",
+          "utc": "2026-10-05T18:11:28.392Z",
+          "data": {
+            "status": "started"
+          }
+        },
+        "source": {
+          "kind": "capture",
+          "session": "2026-canada_r",
+          "utc": "2026-10-05T18:11:28.392Z",
+          "capture": "start",
+          "seq": 3748
+        }
+      }
+    },
+    {
+      "feedId": "session.lap-count",
+      "name": "Lap Count",
+      "family": "core",
+      "tier": "free",
+      "shortDesc": "Current lap and total laps remaining.",
+      "sample": {
+        "payload": {
+          "feed": "session.lap-count",
+          "sessionId": "2026-canada_r",
+          "utc": "2026-10-05T18:09:44.695Z",
+          "data": {
+            "currentLap": 0,
+            "totalLaps": 68
+          }
+        },
+        "source": {
+          "kind": "capture",
+          "session": "2026-canada_r",
+          "utc": "2026-10-05T18:09:44.695Z",
+          "capture": "start",
+          "seq": 3511
+        }
+      }
+    },
+    {
+      "feedId": "driver.list",
+      "name": "Driver List",
+      "family": "core",
+      "tier": "free",
+      "shortDesc": "Driver number, TLA, full name, team name, team colour.",
+      "sample": {
+        "payload": {
+          "feed": "driver.list",
+          "sessionId": "2026-canada_r",
+          "utc": "2026-10-05T18:49:56.756Z",
+          "drivers": [
+            {
+              "driverId": "antonelli-kimi",
+              "constructorId": "mercedes",
+              "number": "12",
+              "tla": "ANT",
+              "name": "Kimi Antonelli",
+              "team": "Mercedes"
+            },
+            {
+              "driverId": "russell-george",
+              "constructorId": "mercedes",
+              "number": "63",
+              "tla": "RUS",
+              "name": "George Russell",
+              "team": "Mercedes"
+            }
+          ]
+        },
+        "source": {
+          "kind": "capture-normalised",
+          "session": "2026-canada_r",
+          "utc": "2026-10-05T18:49:56.756Z",
+          "note": "recorded frame; driver identity fields completed from the driver registry, timing.data trimmed to 3 rows"
+        }
+      }
+    },
+    {
+      "feedId": "session.clock",
+      "name": "Extrapolated Clock",
+      "family": "core",
+      "tier": "live",
+      "shortDesc": "Session countdown clock with remaining time and extrapolating flag.",
+      "sample": {
+        "payload": {
+          "feed": "session.clock",
+          "sessionId": "2026-canada_r",
+          "utc": "2026-10-05T18:11:28.642Z",
+          "data": {
+            "clockUtc": "2026-05-24T20:09:48.004Z",
+            "remaining": "01:59:59",
+            "extrapolating": true
+          }
+        },
+        "source": {
+          "kind": "capture",
+          "session": "2026-canada_r",
+          "utc": "2026-10-05T18:11:28.642Z",
+          "capture": "start",
+          "seq": 3755
+        }
+      }
+    },
+    {
+      "feedId": "session.info",
+      "name": "Session Info",
+      "family": "core",
+      "tier": "live",
+      "shortDesc": "Session metadata: circuit, event, type, start/end dates, GMT offset.",
+      "sample": {
+        "payload": {
+          "feed": "session.info",
+          "sessionId": "2026-canada_r",
+          "utc": "2026-10-05T18:11:28.392Z",
+          "data": {
+            "sessionType": "Race",
+            "sessionName": "Race",
+            "startDate": "2026-05-24T16:00:00",
+            "endDate": "2026-05-24T18:00:00",
+            "gmtOffset": "-04:00:00",
+            "eventName": "Canadian Grand Prix",
+            "officialName": "FORMULA 1 LENOVO GRAND PRIX DU CANADA 2026",
+            "location": "Montréal",
+            "country": {
+              "code": "CAN",
+              "name": "Canada"
+            },
+            "circuit": {
+              "id": "montreal",
+              "name": "Montreal"
+            }
+          }
+        },
+        "source": {
+          "kind": "capture",
+          "session": "2026-canada_r",
+          "utc": "2026-10-05T18:11:28.392Z",
+          "capture": "start",
+          "seq": 3747
+        }
+      }
+    }
+  ]
+}

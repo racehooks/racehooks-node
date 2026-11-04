@@ -16,6 +16,13 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Feed catalog types are up to date
+        run: |
+          node scripts/gen-feed-catalog.mjs
+          git diff --exit-code -- src/feed-catalog.generated.ts
+      # TODO: also compare catalog/feed-catalog.json contentHash against the monorepo's published
+      # catalog. No public URL serves it yet (GET /v1/feeds requires auth), so this check is not
+      # possible until one exists.
       - run: npm run typecheck
       - run: npm test
       - run: npm run build

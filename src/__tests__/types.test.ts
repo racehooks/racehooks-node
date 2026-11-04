@@ -320,3 +320,20 @@ describe("WebhookPayload + FeedId", () => {
     expect(ids).toHaveLength(4);
   });
 });
+
+// ── feed catalog (generated) ────────────────────────────────────────────────
+import { FEED_CATALOG } from "../index.js";
+import type { Feed, FeedAvailability } from "../index.js";
+
+describe("FEED_CATALOG", () => {
+  it("has unique ids and only catalog tiers", () => {
+    const ids = FEED_CATALOG.map((f) => f.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    const tiers: FeedAvailability[] = ["free", "live", "analytics", "lap"];
+    for (const f of FEED_CATALOG) expect(tiers).toContain(f.tier);
+  });
+  it("Feed.availability is a FeedAvailability", () => {
+    const f: Feed = { feedId: "weather.data", name: "Weather", path: "/x", availability: "free" };
+    expect(f.availability).toBe("free");
+  });
+});
