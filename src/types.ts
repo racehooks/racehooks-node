@@ -1002,36 +1002,6 @@ export interface CompoundCrossoverPayload extends WeatherAlertEnvelope<"weather.
   estimatedLapsUntilAllOnSlick: number | null;
 }
 
-// ---------------------------------------------------------------------------
-// results.race-summary — post-race telemetry summary (once, after CarData)
-// NOTE: predates the standard `feed` envelope and carries a `type` discriminator.
-// ---------------------------------------------------------------------------
-
-export interface RaceSummaryLinks {
-  summary: string;
-  laps: string;
-  stints: string;
-  aggression: string;
-}
-
-export interface RaceSummaryPayload {
-  type: "race.summary.complete";
-  raceId: string;
-  raceName: string;
-  processedAt: string;
-  totalSamples: number;
-  maxSpeedKph: number | null;
-  /** Driver who set the race's top speed — full DriverRef, or null. */
-  maxSpeedDriver: DriverRef | null;
-  avgThrottlePct: number | null;
-  avgBrakePct: number | null;
-  /** Highest mean-aggression driver of the race — full DriverRef, or null. */
-  topAggressionDriver: DriverRef | null;
-  topAggressionScore: number | null;
-  /** RaceHooks REST links into the full telemetry detail. */
-  _links: RaceSummaryLinks;
-}
-
 // ===========================================================================
 // events.race — synthetic race events (feed: "events.race")
 // A discriminated union keyed on `event`. Every payload nests a full DriverRef.
@@ -1522,8 +1492,6 @@ export type FeedId =
   | "weather.data-series"
   | "race-control.messages"
   | "session.info"
-  | "telemetry.position"
-  | "telemetry.car-data"
   | "telemetry.driver-tracker"
   | "telemetry.track-position"
   | "standings.projection"
@@ -1533,7 +1501,6 @@ export type FeedId =
   | "events.race"
   | "session.timing"
   | "events.qualifying"
-  | "results.race-summary"
   | "analytics.strategy"
   | "analytics.race-odds"
   | "analytics.true-pace"
@@ -1857,36 +1824,6 @@ export interface ModelMetaEntry {
   trainRows: number | null;
   trainedAt: string;
   notes: string | null;
-}
-
-// ---------------------------------------------------------------------------
-// Telemetry API types (/v1/telemetry/*)
-// ---------------------------------------------------------------------------
-
-export interface LapTelemetryEntry {
-  lapNumber: number;
-  driverId: string;
-  avgSpeedKph: number | null;
-  maxSpeedKph: number | null;
-  avgThrottlePct: number | null;
-  fullThrottlePct: number | null;
-  brakePct: number | null;
-  topGear: number | null;
-  drsPct: number | null;
-  aggressionIdx: number | null;
-  sampleCount: number;
-}
-
-export interface TelemetrySummary {
-  status: string;
-  processedAt: string | null;
-  totalSamples: number | null;
-  maxSpeedKph: number | null;
-  maxSpeedDriver: string | null;
-  avgThrottlePct: number | null;
-  avgBrakePct: number | null;
-  topAggressionDriver: string | null;
-  topAggressionScore: number | null;
 }
 
 // ---------------------------------------------------------------------------

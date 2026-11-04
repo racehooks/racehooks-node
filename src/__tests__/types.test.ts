@@ -40,7 +40,6 @@ import type {
   QualifyingEventPayload,
   QualifyingPolePositionData,
   // results
-  RaceSummaryPayload,
 } from "../types.js";
 
 const VER: DriverRef = {
@@ -298,29 +297,6 @@ describe("event feed payloads", () => {
     };
     expect(pole.feed).toBe("events.qualifying");
     expect(poleData.marginToP2Ms).toBe(142);
-  });
-});
-
-// ── results.race-summary (legacy `type` discriminator) ──────────────────────
-
-describe("RaceSummaryPayload", () => {
-  it("uses a `type` discriminator and full DriverRef metric holders", () => {
-    const summary: RaceSummaryPayload = {
-      type: "race.summary.complete",
-      raceId: "2026-bahrain-r1",
-      raceName: "Bahrain Grand Prix",
-      processedAt: "2026-03-16T16:30:00Z",
-      totalSamples: 1_200_000,
-      maxSpeedKph: 342.1,
-      maxSpeedDriver: VER,
-      avgThrottlePct: 61.2,
-      avgBrakePct: 18.4,
-      topAggressionDriver: NOR,
-      topAggressionScore: 0.91,
-      _links: { summary: "/v1/telemetry/2026-bahrain-r1", laps: "/v1/telemetry/2026-bahrain-r1/laps", stints: "/v1/telemetry/2026-bahrain-r1/stints", aggression: "/v1/telemetry/2026-bahrain-r1/aggression" },
-    };
-    expect(summary.type).toBe("race.summary.complete");
-    expect(summary.maxSpeedDriver?.tla).toBe("VER");
   });
 });
 
