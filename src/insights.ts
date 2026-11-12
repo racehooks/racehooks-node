@@ -1,5 +1,5 @@
 import type { HttpClient } from "./http.js";
-import type { InsightRace, InsightBundle, ModelMetaEntry } from "./types.js";
+import type { InsightRace, InsightBundle, ModelMeta } from "./types.js";
 
 export class InsightsNamespace {
   constructor(private readonly http: HttpClient) {}
@@ -15,8 +15,8 @@ export class InsightsNamespace {
     return res.data;
   }
 
-  async getModelMeta(): Promise<Record<string, ModelMetaEntry>> {
-    const res = await this.http.get<{ data: { models: Record<string, ModelMetaEntry> } }>("/insights/model-meta");
-    return res.data.models;
+  async getModelMeta(): Promise<ModelMeta> {
+    const res = await this.http.get<{ data: ModelMeta }>("/insights/model-meta");
+    return res.data;
   }
 }

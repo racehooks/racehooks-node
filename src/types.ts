@@ -370,7 +370,7 @@ export interface StrategyUndercutThreat {
   call?: StrategyUndercutCall;
 }
 
-/** Feedback-Stackelberg pit-sequencing equilibrium, composed as an attributed story. */
+/** Pit-sequencing recommendation, composed as an attributed story. */
 export interface StrategyPitEquilibrium {
   action: string;
   rivalResponse: string;
@@ -408,7 +408,7 @@ export interface StrategyPayload extends AnalyticsEnvelope<"analytics.strategy">
 }
 
 // ---------------------------------------------------------------------------
-// analytics.race-odds — per-lap CTMC outcome probabilities (race/sprint)
+// analytics.race-odds — per-lap outcome probabilities (race/sprint)
 // ---------------------------------------------------------------------------
 
 export interface RaceOddsPositionChangeWindow {
@@ -474,7 +474,7 @@ export interface TruePacePayload extends AnalyticsEnvelope<"analytics.true-pace"
 }
 
 // ---------------------------------------------------------------------------
-// analytics.gap-projection — Monte Carlo projected gap to leader (race/sprint)
+// analytics.gap-projection — projected gap to leader (race/sprint)
 // ---------------------------------------------------------------------------
 
 export interface GapProjectionDriver extends DriverRef {
@@ -1849,14 +1849,16 @@ export interface InsightBundle {
 }
 
 export interface ModelMetaEntry {
-  prAuc: number | null;
-  brierScore: number | null;
-  ece: number | null;
-  f1Score: number | null;
-  threshold: number | null;
-  trainRows: number | null;
-  trainedAt: string;
-  notes: string | null;
+  id: string;
+  label: string;
+  feed: string;
+  status: string;
+}
+
+export interface ModelMeta {
+  generatedAt: string | null;
+  models: ModelMetaEntry[];
+  verify: unknown;
 }
 
 // ---------------------------------------------------------------------------

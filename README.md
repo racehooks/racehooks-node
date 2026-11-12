@@ -131,9 +131,8 @@ Subscribe to [`feedId: "events.race"`](https://racehooks.io/docs/feeds/race-even
 ## Custom
 
 On [Custom](https://racehooks.io/pricing), RaceHooks delivers a suite of derived
-`analytics.*` and `weather.*` feeds, backed by production ML models and an algorithmic
-intelligence layer (CTMC win/podium probability with a full position distribution, ECP/ECPA,
-EKF tyre health). Each is an independently-subscribable feed with a fully-typed payload:
+`analytics.*` and `weather.*` feeds, covering win/podium probability, tyre health and more.
+Each is an independently-subscribable feed with a fully-typed payload:
 
 ```ts
 import type { StrategyPayload } from "racehooks";
