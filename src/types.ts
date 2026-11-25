@@ -343,8 +343,8 @@ export interface StrategyTireHealth {
 
 export interface StrategyDnfRisk {
   dnfRiskScore: number;
-  lapsTo50PctSurvival: number | null;
-  constructorHazardRate: number;
+  lapsTo50PctDnfRisk: number | null;
+  constructorDnfRate: number;
 }
 
 export interface StrategyPitSurvival {
